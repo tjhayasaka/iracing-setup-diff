@@ -1,4 +1,4 @@
 elm-stuff
-src/secrets.elm
+src/Secrets.elm
 electron/node_modules
 electron/elm.js

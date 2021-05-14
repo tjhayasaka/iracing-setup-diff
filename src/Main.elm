@@ -35,7 +35,16 @@ main =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model Nothing Nothing [] DragDrop.initialState, Cmd.none )
+    let
+        initialModel =
+            { maybeCar = Nothing
+            , maybeTrack = Nothing
+            , selectedSetupIds = []
+            , dragDropState = DragDrop.initialState
+            , setups = Master.setups_ -- Dict.fromList []
+            }
+    in
+    ( initialModel, Cmd.none )
 
 
 
@@ -194,7 +203,7 @@ div[role='button'] { font-size: 13px; background: #dddddd; color: #000; border: 
                                         }
                                     ]
                          in
-                         Setup.filterByCarTrack model.maybeCar model.maybeTrack Master.setups
+                         Setup.filterByCarTrack model.maybeCar model.maybeTrack model.setups
                             |> List.map entry
                         )
                     ]
@@ -216,7 +225,7 @@ viewCarForm model =
         [ text "Car"
         , let
             countMatches maybeCar =
-                Master.setups |> Setup.filterByCarTrack maybeCar model.maybeTrack |> List.length |> String.fromInt
+                model.setups |> Setup.filterByCarTrack maybeCar model.maybeTrack |> List.length |> String.fromInt
 
             entry car =
                 Html.option
@@ -240,7 +249,7 @@ viewTrackForm model =
         [ text "Track"
         , let
             countMatches maybeTrack =
-                Master.setups |> Setup.filterByCarTrack model.maybeCar maybeTrack |> List.length |> String.fromInt
+                model.setups |> Setup.filterByCarTrack model.maybeCar maybeTrack |> List.length |> String.fromInt
 
             entry track =
                 Html.option
@@ -260,4 +269,8 @@ viewTrackForm model =
 
 
 viewSelectedSetups model =
-    SetupView.viewSetupComparisonTable model.dragDropState model.selectedSetupIds
+    let
+        setupList =
+            Setup.getMany model.selectedSetupIds model.setups
+    in
+    SetupView.viewSetupComparisonTable model.dragDropState setupList

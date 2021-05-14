@@ -111,14 +111,11 @@ dragDropMessages =
     }
 
 
-viewSetupComparisonTable : DragDrop.State Setup.Id DropTargetIdType -> List Setup.Id -> Element Msg
-viewSetupComparisonTable dragDropState selectedSetupIds =
+viewSetupComparisonTable : DragDrop.State Setup.Id DropTargetIdType -> List Setup.Setup -> Element Msg
+viewSetupComparisonTable dragDropState selectedSetups =
     let
-        rawSetups =
-            Setup.getMany selectedSetupIds Master.setups
-
         cookedSetups =
-            rawSetups |> List.map makeCookedSetup
+            selectedSetups |> List.map makeCookedSetup
 
         rows =
             tableRows cookedSetups

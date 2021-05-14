@@ -1,6 +1,7 @@
 module Global exposing (DropTargetIdType(..), Model, Msg(..))
 
 import Car
+import Dict exposing (Dict)
 import Dom.DragDrop as DragDrop
 import Setup
 import Track
@@ -16,6 +17,7 @@ type alias Model =
     , maybeTrack : Maybe Track.Track
     , selectedSetupIds : List Setup.Id
     , dragDropState : DragDrop.State Setup.Id DropTargetIdType
+    , setups : Dict Setup.Id Setup.Setup
     }
 
 

@@ -1,13 +1,15 @@
 module Global exposing (DropTargetIdType(..), Model, Msg(..))
 
 import Car
-import Track
-import Setup
 import Dom.DragDrop as DragDrop
+import Setup
+import Track
+
 
 type DropTargetIdType
     = OntoElement Setup.Id
     | EndOfList
+
 
 type alias Model =
     { maybeCar : Maybe Car.Car
@@ -15,6 +17,7 @@ type alias Model =
     , selectedSetupIds : List Setup.Id
     , dragDropState : DragDrop.State Setup.Id DropTargetIdType
     }
+
 
 type Msg
     = CarChanged String

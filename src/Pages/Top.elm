@@ -1,6 +1,5 @@
-module Main exposing (main)
+module Pages.Top exposing (Model, Msg, page)
 
-import Browser
 import Master
 import Car
 import Track
@@ -12,28 +11,38 @@ import Html
 import Html.Attributes
 import Html.Events
 import Dom.DragDrop as DragDrop
+import TopTypes exposing (..)
 import Element exposing (..)
 import Element.Font as Font
 import Element.Input as Input
-import Element.Background as Background
-import Global exposing (..)
 
 
-main : Program () Model Msg
-main =
-    Browser.element
-        { init = init
-        , update = update
-        , subscriptions = subscriptions
-        , view = view
+type alias Model =
+    { maybeCar : Maybe Car.Car
+    , maybeTrack : Maybe Track.Track
+    , selectedSetupIds : List Setup.Id
+    , dragDropState : DragDrop.State Setup.Id TopTypes.DropTargetIdType
+    }
+
+
+type alias Msg
+    = TopTypes.Msg
+
+page : Page Params.Top Model Msg model msg appMsg
+page =
+    Spa.Page.sandbox
+        { title = always "iRacing Notes"
+        , init = always init
+        , update = always update
+        , view = always view
         }
 
 
 -- INIT
 
-init : () -> ( Model, Cmd Msg )
+init : Params.Top -> Model
 init _ =
-    ( Model Nothing Nothing [] DragDrop.initialState, Cmd.none )
+    ( Model Nothing Nothing [] DragDrop.initialState )
 
 
 -- UPDATE
@@ -56,38 +65,38 @@ toggleSetup setupId model =
         else
             model0
 
-update : Msg -> Model -> ( Model,  Cmd Msg )
+update : Msg -> Model -> Model
 update msg model =
     case msg of
         CarChanged newIdString ->
-            ( { model | maybeCar = Car.get (Car.IdString newIdString) Master.cars }, Cmd.none )
+            { model | maybeCar = Car.get (Car.IdString newIdString) Master.cars }
 
         TrackChanged newIdString ->
-            ( { model | maybeTrack = Track.get (Track.IdString newIdString) Master.tracks }, Cmd.none )
+            { model | maybeTrack = Track.get (Track.IdString newIdString) Master.tracks }
 
         ToggleSetup setupId ->
-            ( toggleSetup setupId model, Cmd.none )
+            toggleSetup setupId model
 
         AddRemoveSetup setupId flag ->
             if flag then
-                ( addSetup setupId model, Cmd.none )
+                addSetup setupId model
             else
-                ( removeSetup setupId model, Cmd.none )
+                removeSetup setupId model
 
         AddSetup setupId ->
-            ( addSetup setupId model, Cmd.none )
+            addSetup setupId model
 
         RemoveSetup setupId ->
-            ( removeSetup setupId model, Cmd.none )
+            removeSetup setupId model
 
         MoveStarted draggedItemId ->
-            ( { model | dragDropState = DragDrop.startDragging model.dragDropState draggedItemId }, Cmd.none )
+            { model | dragDropState = DragDrop.startDragging model.dragDropState draggedItemId }
 
         MoveTargetChanged dropTargetId ->
-            ( { model | dragDropState = DragDrop.updateDropTarget model.dragDropState dropTargetId }, Cmd.none )
+            { model | dragDropState = DragDrop.updateDropTarget model.dragDropState dropTargetId }
 
         MoveCanceled ->
-            ( { model | dragDropState = DragDrop.stopDragging model.dragDropState }, Cmd.none )
+            { model | dragDropState = DragDrop.stopDragging model.dragDropState }
 
         MoveCompleted draggedItemId dropTarget ->
             let
@@ -114,38 +123,15 @@ update msg model =
                             ( listWithoutDraggedItem, [] )
 
             in
-                ( { model | selectedSetupIds = beforeDroppedElement ++ [ draggedItemId ] ++ afterDroppedElement, dragDropState = DragDrop.initialState }, Cmd.none )
-
-
-
--- SUBSCRIPTIONS
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.none
+                { model | selectedSetupIds = beforeDroppedElement ++ [ draggedItemId ] ++ afterDroppedElement, dragDropState = DragDrop.initialState }
 
 
 -- VIEW
 
 
-view : Model -> Html.Html Msg
+view : Model -> Element Msg
 view model =
-    Element.layout
-        [ Font.size 20
-        ]
-    <|
-     column [ height fill, width fill
-           , Background.color (rgb255 0 0 0)
-           , Font.color <| rgb255 255 255 255
-           , Font.size 14
-           ]
-      [ html (Html.node "style" [] [ Html.text """
-div[role='button'] { font-size: 13px; background: #dddddd; color: #000; border: solid 1px #a9a9a9; padding: 2px; }
-    """ ])
-      ,
-
-      column [ spacing 24 ] [
+    column [ spacing 24 ] [
          row [ padding 10
              , spacing 24
              ]
@@ -181,7 +167,6 @@ div[role='button'] { font-size: 13px; background: #dddddd; color: #000; border: 
                    _ -> viewSelectedSetups model
              ]
         ]
-       ]
 
 viewCarForm model =
     column [] [ text "Car"

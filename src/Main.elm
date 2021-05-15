@@ -1,4 +1,4 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Browser
 import Car
@@ -15,11 +15,12 @@ import Html.Events
 import List.Extra
 import Master
 import Setup
+import SetupParser
 import SetupView
 import Track
 
 
-main : Program () Model Msg
+main : Program String Model Msg
 main =
     Browser.element
         { init = init
@@ -30,11 +31,21 @@ main =
 
 
 
+-- PORTS
+
+
+port readSetupFiles : String -> Cmd msg
+
+
+port doneReadSetupFiles : (String -> msg) -> Sub msg
+
+
+
 -- INIT
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
+init : String -> ( Model, Cmd Msg )
+init setupDirectory =
     let
         initialModel =
             { maybeCar = Nothing
@@ -42,9 +53,10 @@ init _ =
             , selectedSetupIds = []
             , dragDropState = DragDrop.initialState
             , setups = Master.setups_ -- Dict.fromList []
+            , setupParserMessage = "loading exported setup files..."
             }
     in
-    ( initialModel, Cmd.none )
+    ( initialModel, readSetupFiles setupDirectory )
 
 
 
@@ -78,6 +90,9 @@ toggleSetup setupId model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        ParseSetupFiles json ->
+            ( SetupParser.parseSetupFiles model json, Cmd.none )
+
         CarChanged newIdString ->
             ( { model | maybeCar = Car.get (Car.IdString newIdString) Master.cars }, Cmd.none )
 
@@ -142,7 +157,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    doneReadSetupFiles ParseSetupFiles
 
 
 
@@ -170,7 +185,8 @@ div[role='button'] { font-size: 13px; background: #dddddd; color: #000; border: 
                     [ padding 10
                     , spacing 24
                     ]
-                    [ column [] [ viewCarForm model ]
+                    [ row [] [ text model.setupParserMessage ]
+                    , column [] [ viewCarForm model ]
                     , column [] [ viewTrackForm model ]
                     ]
                 , column []

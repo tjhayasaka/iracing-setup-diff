@@ -1,4 +1,4 @@
-module Global exposing (DropTargetIdType(..), Model, Msg(..))
+module Global exposing (DropTargetIdType(..), ExportedSetupOrInfo(..), Model, Msg(..))
 
 import Car
 import Dict exposing (Dict)
@@ -18,11 +18,13 @@ type alias Model =
     , selectedSetupIds : List Setup.Id
     , dragDropState : DragDrop.State Setup.Id DropTargetIdType
     , setups : Dict Setup.Id Setup.Setup
+    , setupParserMessage : String
     }
 
 
 type Msg
-    = CarChanged String
+    = ParseSetupFiles String
+    | CarChanged String
     | TrackChanged String
     | ToggleSetup Setup.Id
     | AddRemoveSetup Setup.Id Bool
@@ -32,3 +34,10 @@ type Msg
     | MoveTargetChanged DropTargetIdType
     | MoveCanceled
     | MoveCompleted Setup.Id DropTargetIdType
+
+
+type
+    ExportedSetupOrInfo
+    -- used in ports
+    = Ignored { what : String }
+    | ExportedSetup { basename : String, filename : String }

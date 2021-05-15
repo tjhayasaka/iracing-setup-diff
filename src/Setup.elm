@@ -1,6 +1,7 @@
 module Setup exposing
     ( Id
     , Setup
+    , SetupEntry
     , entryBaseName
     , entryDirName
     , filterByCar
@@ -20,12 +21,16 @@ type alias Id =
     String
 
 
+type alias SetupEntry =
+    { name : String, value : String }
+
+
 type alias Setup =
     { id : String
     , carId : Car.Id
     , trackId : Track.Id
     , name : String
-    , entries : List { name : String, value : String }
+    , entries : List SetupEntry
     }
 
 

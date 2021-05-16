@@ -1,11 +1,17 @@
 // Modules to control application life and create native browser window
-const {app, BrowserWindow} = require('electron')
+const {app, BrowserWindow, Menu} = require('electron')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 
 function createWindow () {
+  // remove "Edit" menu item from the application menu.
+  var oldMenu = Menu.getApplicationMenu()
+  var newMenu = new Menu();
+  oldMenu.items.filter(menuitem => menuitem.label != "Edit").forEach(i => newMenu.append(i));
+  Menu.setApplicationMenu(newMenu);
+
   // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 960,

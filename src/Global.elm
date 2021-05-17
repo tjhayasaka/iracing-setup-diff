@@ -15,6 +15,7 @@ type DropTargetIdType
 type alias Model =
     { maybeCar : Maybe Car.Car
     , maybeTrack : Maybe Track.Track
+    , nameFilterText : String
     , selectedSetupIds : List Setup.Id
     , dragDropState : DragDrop.State Setup.Id DropTargetIdType
     , setups : Dict Setup.Id Setup.Setup
@@ -26,6 +27,7 @@ type Msg
     = ParseSetupFiles String
     | CarChanged String
     | TrackChanged String
+    | NameFilterTextChanged String
     | ToggleSetup Setup.Id
     | AddRemoveSetup Setup.Id Bool
     | AddSetup Setup.Id

@@ -72,8 +72,8 @@ filterByTrack maybeTrack setups =
     List.filter matchTrack setups
 
 
-filterByCarTrack : Maybe Car.Car -> Maybe Track.Track -> Dict Id Setup -> List Setup
-filterByCarTrack maybeCar maybeTrack setups =
+filterByCarTrack : Maybe Car.Car -> Maybe Track.Track -> String -> Dict Id Setup -> List Setup
+filterByCarTrack maybeCar maybeTrack nameFilterText setups =
     let
         matchCar setup =
             case maybeCar of
@@ -91,10 +91,23 @@ filterByCarTrack maybeCar maybeTrack setups =
                 Just track ->
                     track.id == setup.trackId
 
-        matchCarTrack setup =
-            matchCar setup && matchTrack setup
+        matchNameFilter setup =
+            let
+                setupName =
+                    String.toLower setup.name
+
+                words =
+                    String.split " " (String.toLower nameFilterText)
+
+                matchWord word =
+                    String.contains word setupName
+            in
+            List.all matchWord words
+
+        matchAll setup =
+            matchCar setup && matchTrack setup && matchNameFilter setup
     in
-    Dict.values setups |> List.filter matchCarTrack
+    Dict.values setups |> List.filter matchAll
 
 
 getEntryValue : String -> Setup -> Maybe String

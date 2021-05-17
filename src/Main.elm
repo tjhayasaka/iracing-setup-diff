@@ -50,6 +50,7 @@ init setupDirectory =
         initialModel =
             { maybeCar = Nothing
             , maybeTrack = Nothing
+            , nameFilterText = ""
             , selectedSetupIds = []
             , dragDropState = DragDrop.initialState
             , setups = Master.setups_ -- Dict.fromList []
@@ -98,6 +99,9 @@ update msg model =
 
         TrackChanged newIdString ->
             ( { model | maybeTrack = Track.get (Track.IdString newIdString) Master.tracks }, Cmd.none )
+
+        NameFilterTextChanged newNameFilterText ->
+            ( { model | nameFilterText = newNameFilterText }, Cmd.none )
 
         ToggleSetup setupId ->
             ( toggleSetup setupId model, Cmd.none )
@@ -167,7 +171,9 @@ subscriptions model =
 view : Model -> Html.Html Msg
 view model =
     Element.layout
-        [ Font.size 20
+        [ Font.size 13
+        , Background.color (rgb255 0 0 0)
+        , Font.color <| rgb255 255 255 255
         ]
     <|
         column
@@ -175,23 +181,23 @@ view model =
             , width fill
             , Background.color (rgb255 0 0 0)
             , Font.color <| rgb255 255 255 255
-            , Font.size 14
+            , Font.size 13
+            , padding 8
             ]
             [ html (Html.node "style" [] [ Html.text """
-div[role='button'] { font-size: 13px; background: #dddddd; color: #000; border: solid 1px #a9a9a9; padding: 2px; }
+div[role='button'] { font-size: 12px; background: #dddddd; color: #000; border: solid 1px #a9a9a9; padding: 2px; }
     """ ])
             , column [ spacing 24 ]
-                [ row
-                    [ padding 10
-                    , spacing 24
+                [ text model.setupParserMessage
+                , row
+                    [ spacing 24 ]
+                    [ viewCarForm model
+                    , viewTrackForm model
+                    , viewNameFilterForm model
                     ]
-                    [ row [] [ text model.setupParserMessage ]
-                    , column [] [ viewCarForm model ]
-                    , column [] [ viewTrackForm model ]
-                    ]
-                , column [] (viewAvailableSetups model)
-                , column []
-                    [ row [] [ text "Selected Setups" ]
+                , viewAvailableSetups model
+                , column [ spacing 4 ]
+                    [ text "Selected Setups"
                     , case model.selectedSetupIds of
                         [] ->
                             text "(none selected)"
@@ -204,11 +210,11 @@ div[role='button'] { font-size: 13px; background: #dddddd; color: #000; border: 
 
 
 viewCarForm model =
-    column []
+    column [ spacing 4 ]
         [ text "Car"
         , let
             countMatches maybeCar =
-                model.setups |> Setup.filterByCarTrack maybeCar model.maybeTrack |> List.length |> String.fromInt
+                model.setups |> Setup.filterByCarTrack maybeCar model.maybeTrack model.nameFilterText |> List.length |> String.fromInt
 
             entry car =
                 Html.option
@@ -228,11 +234,11 @@ viewCarForm model =
 
 
 viewTrackForm model =
-    column []
+    column [ spacing 4 ]
         [ text "Track"
         , let
             countMatches maybeTrack =
-                model.setups |> Setup.filterByCarTrack model.maybeCar maybeTrack |> List.length |> String.fromInt
+                model.setups |> Setup.filterByCarTrack model.maybeCar maybeTrack model.nameFilterText |> List.length |> String.fromInt
 
             entry track =
                 Html.option
@@ -251,41 +257,57 @@ viewTrackForm model =
         ]
 
 
-viewAvailableSetups : Model -> List (Element Msg)
+viewNameFilterForm model =
+    column [ spacing 4 ]
+        [ Input.text
+            [ width (fill |> minimum 300 |> maximum 400)
+            , Background.color (rgb255 0 0 0)
+            , Font.color <| rgb255 255 255 255
+            ]
+            { onChange = NameFilterTextChanged
+            , text = model.nameFilterText
+            , placeholder = Just <| Input.placeholder [] <| text "words"
+            , label = Input.labelAbove [] <| text "Name Filter"
+            }
+        ]
+
+
+viewAvailableSetups : Model -> Element Msg
 viewAvailableSetups model =
-    [ row [] [ text "Setups" ]
-    , column [ spacing 4 ]
-        (let
-            entry setup =
-                let
-                    carName =
-                        Car.get (Car.Id setup.carId) Master.cars |> Maybe.map .longName |> Maybe.withDefault "???"
+    column [ spacing 4 ]
+        [ text "Setups"
+        , column [ spacing 4 ]
+            (let
+                entry setup =
+                    let
+                        carName =
+                            Car.get (Car.Id setup.carId) Master.cars |> Maybe.map .longName |> Maybe.withDefault "???"
 
-                    maybeSetupIndex =
-                        List.Extra.elemIndex setup.id model.selectedSetupIds
+                        maybeSetupIndex =
+                            List.Extra.elemIndex setup.id model.selectedSetupIds
 
-                    indexLabelString =
-                        case maybeSetupIndex of
-                            Nothing ->
-                                ""
+                        indexLabelString =
+                            case maybeSetupIndex of
+                                Nothing ->
+                                    ""
 
-                            Just i ->
-                                String.fromInt i
-                in
-                row [ spacing 8 ]
-                    [ el [ width (fill |> minimum 20) ] (el [ alignRight ] (text indexLabelString))
-                    , Input.checkbox []
-                        { onChange = AddRemoveSetup setup.id
-                        , icon = Input.defaultCheckbox
-                        , checked = maybeSetupIndex /= Nothing
-                        , label = Input.labelRight [] (text (carName ++ " / " ++ setup.name))
-                        }
-                    ]
-         in
-         Setup.filterByCarTrack model.maybeCar model.maybeTrack model.setups
-            |> List.map entry
-        )
-    ]
+                                Just i ->
+                                    String.fromInt i
+                    in
+                    row [ spacing 8 ]
+                        [ el [ width (fill |> minimum 20) ] (el [ alignRight ] (text indexLabelString))
+                        , Input.checkbox []
+                            { onChange = AddRemoveSetup setup.id
+                            , icon = Input.defaultCheckbox
+                            , checked = maybeSetupIndex /= Nothing
+                            , label = Input.labelRight [] (text (carName ++ " / " ++ setup.name))
+                            }
+                        ]
+             in
+             Setup.filterByCarTrack model.maybeCar model.maybeTrack model.nameFilterText model.setups
+                |> List.map entry
+            )
+        ]
 
 
 viewSelectedSetups : Model -> Element Msg

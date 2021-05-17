@@ -140,8 +140,8 @@ viewSetupComparisonTable_ dragDropState setups rows =
             let
                 setupColumnHeader_ i setup =
                     layout [ Font.color <| rgb255 255 255 255, Font.size 14 ]
-                        (column []
-                            [ text setup.name
+                        (column [ spacing 4 ]
+                            [ text (setup.name |> String.replace " / " "\n/ ")
                             , Input.button [] { onPress = Just (RemoveSetup setup.id), label = text "remove" }
                             ]
                         )

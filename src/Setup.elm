@@ -22,7 +22,7 @@ type alias Id =
 
 
 type alias SetupEntry =
-    { name : String, value : String }
+    { name : String, value : String, isComputed : Bool }
 
 
 type alias Setup =

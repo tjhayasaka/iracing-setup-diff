@@ -165,6 +165,23 @@ removeEntry sectionKey entryName a =
             Ok (Dict.insert sectionKey newSectionContent a)
 
 
+markComputed : String -> List Setup.SetupEntry -> Result String (List Setup.SetupEntry)
+markComputed entryName entries =
+    let
+        result =
+            List.map
+                (\entry ->
+                    if entry.name /= entryName then
+                        entry
+
+                    else
+                        { entry | isComputed = True }
+                )
+                entries
+    in
+    Ok result
+
+
 createSection sectionName a =
     Ok a
 
@@ -184,15 +201,16 @@ flatten a =
                 newName =
                     sectionName ++ " / " ++ entry.name
             in
-            { name = newName, value = entry.value }
+            { name = newName, value = entry.value, isComputed = False }
 
+        -- isComputed will be reset in parseSetupEntries_.
         processSection b sectionKey =
             Dict.get sectionKey b |> Maybe.withDefault [] |> List.map (renameEntry sectionKey)
     in
     Ok (Dict.keys a |> List.sort |> List.concatMap (processSection a))
 
 
-parseSetupEntries_ : List Html.Parser.Node -> Result String (List { name : String, value : String })
+parseSetupEntries_ : List Html.Parser.Node -> Result String (List Setup.SetupEntry)
 parseSetupEntries_ entriesHtml =
     preprocess entriesHtml
         |> andThen (renameSection ( 0, "LEFT FRONT" ) ( 0, "TIRES / LEFT FRONT" ))
@@ -233,9 +251,20 @@ parseSetupEntries_ entriesHtml =
         |> andThen (moveEntry ( 1, "TIRES / RIGHT FRONT" ) ( 1.5, "TIRES / FRONT" ) "Stagger")
         |> andThen (moveEntry ( 3, "TIRES / RIGHT REAR" ) ( 3.5, "TIRES / REAR" ) "Stagger")
         |> andThen flatten
+        |> andThen (markComputed "CHASSIS / FRONT / Nose weight")
+        |> andThen (markComputed "CHASSIS / FRONT / Cross weight")
+        |> andThen (markComputed "CHASSIS / FRONT / Left side weight")
+        |> andThen (markComputed "CHASSIS / LEFT FRONT / Corner weight")
+        |> andThen (markComputed "CHASSIS / LEFT FRONT / Tube height")
+        |> andThen (markComputed "CHASSIS / RIGHT FRONT / Corner weight")
+        |> andThen (markComputed "CHASSIS / RIGHT FRONT / Tube height")
+        |> andThen (markComputed "CHASSIS / LEFT REAR / Corner weight")
+        |> andThen (markComputed "CHASSIS / LEFT REAR / Tube height")
+        |> andThen (markComputed "CHASSIS / RIGHT REAR / Corner weight")
+        |> andThen (markComputed "CHASSIS / RIGHT REAR / Tube height")
 
 
-parseSetupEntries : List Html.Parser.Node -> Result String (List { name : String, value : String })
+parseSetupEntries : List Html.Parser.Node -> Result String (List Setup.SetupEntry)
 parseSetupEntries bodyChildren =
     case bodyChildren of
         _ :: (Html.Parser.Element "h2" _ _) :: (Html.Parser.Element "br" _ _) :: (Html.Parser.Text _) :: (Html.Parser.Element "br" _ _) :: (Html.Parser.Text _) :: (Html.Parser.Element "br" _ _) :: (Html.Parser.Text _) :: entriesHtml ->

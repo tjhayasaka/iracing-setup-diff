@@ -14,18 +14,22 @@ import Setup
 import Track
 
 
+type alias RawRow =
+    { name : String
+    , valueElements : List (Element Msg) -- used to render
+    , maybeValues : List (Maybe String) -- used to determine majority or not
+    , majorityPs : List Bool
+    , isComputed : Bool
+    }
+
+
 type Row
     = SectionHeader String
-    | SetupItem
-        { name : String
-        , valueElements : List (Element Msg) -- used to render
-        , maybeValues : List (Maybe String) -- used to determine majority or not
-        , majorityPs : List Bool
-        }
+    | SetupItem RawRow
 
 
 type alias CookedSetupEntry =
-    { name : String, value : String, valueElement : Element Msg }
+    { name : String, isComputed : Bool, value : String, valueElement : Element Msg }
 
 
 type alias CookedSetup =
@@ -37,14 +41,17 @@ type alias CookedSetup =
     }
 
 
+makeCookedSetup : Setup.Setup -> CookedSetup
 makeCookedSetup rawSetup =
     let
         makeValueElement rawElement =
             { name = rawElement.name
+            , isComputed = rawElement.isComputed
             , value = rawElement.value
             , valueElement = text rawElement.value
             }
 
+        addMetaEntries : List CookedSetupEntry -> List CookedSetupEntry
         addMetaEntries entries =
             let
                 maybeCar =
@@ -77,12 +84,14 @@ makeCookedSetup rawSetup =
 
                 carEntry =
                     { name = "Meta / Car"
+                    , isComputed = False
                     , value = carName
                     , valueElement = Input.button [] { onPress = Just (CarChanged carId), label = text carName }
                     }
 
                 trackEntry =
                     { name = "Meta / Track"
+                    , isComputed = False
                     , value = trackName
                     , valueElement = Input.button [] { onPress = Just (TrackChanged trackId), label = text trackName }
                     }
@@ -98,8 +107,8 @@ makeCookedSetup rawSetup =
 
 
 getCookedSetupEntry : String -> CookedSetup -> Maybe CookedSetupEntry
-getCookedSetupEntry entryName rawSetup =
-    rawSetup.entries |> List.filter (\entry -> entry.name == entryName) |> List.head
+getCookedSetupEntry entryName cookedSetup =
+    cookedSetup.entries |> List.filter (\entry -> entry.name == entryName) |> List.head
 
 
 dragDropMessages : DragDrop.Messages Msg Setup.Id DropTargetIdType
@@ -161,11 +170,18 @@ viewSetupComparisonTable_ dragDropState setups rows =
                                                     p
 
                                         majorityAttrs =
-                                            if majorityP then
-                                                []
+                                            case ( majorityP, item.isComputed ) of
+                                                ( False, False ) ->
+                                                    [ Html.Attributes.style "background-color" "#600" |> htmlAttribute ]
 
-                                            else
-                                                [ Html.Attributes.style "background-color" "#600" |> htmlAttribute ]
+                                                ( False, True ) ->
+                                                    [ Html.Attributes.style "background-color" "#300" |> htmlAttribute, Html.Attributes.style "color" "#bbb" |> htmlAttribute ]
+
+                                                ( True, False ) ->
+                                                    []
+
+                                                ( True, True ) ->
+                                                    [ Html.Attributes.style "color" "#aaa" |> htmlAttribute ]
                                     in
                                     column
                                         (majorityAttrs ++ [ paddingXY 10 0 ])
@@ -190,12 +206,22 @@ viewSetupComparisonTable_ dragDropState setups rows =
                             text name
 
                         SetupItem item ->
-                            column [] [ el [ alignRight ] (text item.name) ]
+                            let
+                                isComputedAttrs =
+                                    case item.isComputed of
+                                        False ->
+                                            []
+
+                                        True ->
+                                            [ Html.Attributes.style "color" "#aaa" |> htmlAttribute ]
+                            in
+                            column isComputedAttrs [ el [ alignRight ] (text item.name) ]
             }
                 :: List.indexedMap setupColumns setups
         }
 
 
+splitSections : List RawRow -> List Row
 splitSections rows =
     case List.head rows of
         Nothing ->
@@ -209,6 +235,7 @@ splitSections rows =
             splitSections_ sectionName rows
 
 
+splitSections_ : String -> List RawRow -> List Row
 splitSections_ sectionName rows =
     let
         sectionRows_ rows_ =
@@ -239,14 +266,19 @@ splitSections_ sectionName rows =
     SectionHeader sectionName :: sectionRows ++ splitSections restRows
 
 
+tableRows : List CookedSetup -> List Row
 tableRows setups =
     setups |> tableRows_ |> List.map markMajorities |> splitSections
 
 
+tableRows_ : List CookedSetup -> List RawRow
 tableRows_ setups =
     let
         maybeNextEntryName =
             setups |> List.filterMap (\setup -> setup.entries |> List.head |> Maybe.map .name) |> List.head
+
+        maybeIsComputed =
+            setups |> List.filterMap (\setup -> setup.entries |> List.head |> Maybe.map .isComputed) |> List.head
 
         removeEntry entryName setup =
             { setup | entries = setup.entries |> List.filter (\entry -> entry.name /= entryName) }
@@ -263,6 +295,9 @@ tableRows_ setups =
                 entries =
                     setups |> List.map (\setup -> getCookedSetupEntry entryName setup)
 
+                isComputed =
+                    maybeIsComputed |> Maybe.withDefault False
+
                 entryValues =
                     entries |> List.map (Maybe.map .value)
 
@@ -270,6 +305,7 @@ tableRows_ setups =
                     entries |> List.map (Maybe.map .valueElement) |> List.map (Maybe.withDefault none)
             in
             { name = entryName
+            , isComputed = isComputed
             , valueElements = valueElements
             , maybeValues = entryValues
             , majorityPs = []
@@ -277,6 +313,7 @@ tableRows_ setups =
                 :: tableRows_ (removeEntries entryName)
 
 
+markMajorities : RawRow -> RawRow
 markMajorities row =
     let
         entryValues =

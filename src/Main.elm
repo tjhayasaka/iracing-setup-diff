@@ -284,9 +284,11 @@ viewTrackForm model =
         ]
 
 
+viewSelectedSetups : Model -> Element Msg
 viewSelectedSetups model =
     let
-        setupList =
+        selectedSetups : List Setup.Setup
+        selectedSetups =
             Setup.getMany model.selectedSetupIds model.setups
     in
-    SetupView.viewSetupComparisonTable model.dragDropState setupList
+    SetupView.viewSetupComparisonTable model.dragDropState selectedSetups

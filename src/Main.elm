@@ -12,15 +12,18 @@ import Global exposing (..)
 import Html
 import Html.Attributes
 import Html.Events
+import Html.Parser
+import Html.Parser.Util
 import List.Extra
 import Master
 import Setup
 import SetupParser
 import SetupView
+import Task
 import Track
 
 
-main : Program String Model Msg
+main : Program () Model Msg
 main =
     Browser.element
         { init = init
@@ -30,34 +33,68 @@ main =
         }
 
 
+nextMsg : (arg -> Msg) -> arg -> Cmd Msg
+nextMsg msg arg =
+    Task.perform msg (Task.succeed arg)
+
+
 
 -- PORTS
 
 
-port readSetupFiles : String -> Cmd msg
+port getDefaultSetupDirectory : () -> Cmd msg
 
 
-port doneReadSetupFiles : (String -> msg) -> Sub msg
+port doneGetDefaultSetupDirectory : (String -> msg) -> Sub msg
+
+
+port doneGetDefaultSetupDirectoryError : (String -> msg) -> Sub msg
+
+
+port getStoredSetupDirectory : () -> Cmd msg
+
+
+port doneGetStoredSetupDirectory : (String -> msg) -> Sub msg
+
+
+port doneGetStoredSetupDirectoryError : (String -> msg) -> Sub msg
+
+
+port getSetupDirectory : ( String, String ) -> Cmd msg
+
+
+port doneGetSetupDirectory : (String -> msg) -> Sub msg
+
+
+port readExportedSetupFiles : String -> Cmd msg
+
+
+port doneReadExportedSetupFiles : (String -> msg) -> Sub msg
 
 
 
 -- INIT
 
 
-init : String -> ( Model, Cmd Msg )
-init setupDirectory =
+init : () -> ( Model, Cmd Msg )
+init () =
     let
         initialModel =
-            { maybeCar = Nothing
+            { defaultSetupDirectory = "/"
+            , storedSetupDirectory = Nothing
+            , setupDirectory = "/"
+            , setups = Master.setups_ -- Dict.fromList []
+            , showMessages = False
+            , statusText = "initializing app..."
+            , messages = ""
+            , maybeCar = Nothing
             , maybeTrack = Nothing
             , nameFilterText = ""
             , selectedSetupIds = []
             , dragDropState = DragDrop.initialState
-            , setups = Master.setups_ -- Dict.fromList []
-            , setupParserMessage = "loading exported setup files..."
             }
     in
-    ( initialModel, readSetupFiles setupDirectory )
+    ( initialModel, nextMsg Reload () )
 
 
 
@@ -91,8 +128,46 @@ toggleSetup setupId model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ParseSetupFiles json ->
+        Reload () ->
+            ( { model | statusText = "reloading...", messages = "" }, getDefaultSetupDirectory () )
+
+        DoneGetDefaultSetupDirectory defaultSetupDirectory ->
+            ( { model | defaultSetupDirectory = defaultSetupDirectory }, getStoredSetupDirectory () )
+
+        DoneGetDefaultSetupDirectoryError message ->
+            let
+                fallback =
+                    "<failed to determine default setup directory>"
+            in
+            ( { model
+                | messages = model.messages ++ message ++ "\n"
+                , defaultSetupDirectory = fallback
+              }
+            , getStoredSetupDirectory ()
+            )
+
+        DoneGetStoredSetupDirectory storedSetupDirectory ->
+            ( { model | storedSetupDirectory = Just storedSetupDirectory }, getSetupDirectory ( model.defaultSetupDirectory, storedSetupDirectory ) )
+
+        DoneGetStoredSetupDirectoryError message ->
+            ( { model
+                | messages = model.messages ++ message ++ "\n"
+                , storedSetupDirectory = Nothing
+              }
+            , nextMsg DoneGetSetupDirectory model.defaultSetupDirectory
+            )
+
+        DoneGetSetupDirectory setupDirectory ->
+            ( { model | setupDirectory = setupDirectory }, nextMsg StartReadExportedSetupFiles () )
+
+        StartReadExportedSetupFiles () ->
+            ( { model | statusText = "loading exported setup files..." }, readExportedSetupFiles model.setupDirectory )
+
+        DoneReadExportedSetupFiles json ->
             ( SetupParser.parseSetupFiles model json, Cmd.none )
+
+        ToggleShowMessages ->
+            ( { model | showMessages = not model.showMessages }, Cmd.none )
 
         CarChanged newIdString ->
             ( { model | maybeCar = Car.get (Car.IdString newIdString) Master.cars }, Cmd.none )
@@ -161,11 +236,46 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    doneReadSetupFiles ParseSetupFiles
+    Sub.batch
+        [ doneGetDefaultSetupDirectory DoneGetDefaultSetupDirectory
+        , doneGetDefaultSetupDirectoryError DoneGetDefaultSetupDirectoryError
+        , doneGetStoredSetupDirectory DoneGetStoredSetupDirectory
+        , doneGetStoredSetupDirectoryError DoneGetStoredSetupDirectoryError
+        , doneGetSetupDirectory DoneGetSetupDirectory
+        , doneReadExportedSetupFiles DoneReadExportedSetupFiles
+        ]
 
 
 
 -- VIEW
+
+
+rawHtml : String -> List (Html.Html msg)
+rawHtml str =
+    case Html.Parser.run str of
+        Ok nodes ->
+            Html.Parser.Util.toVirtualDom nodes
+
+        Err _ ->
+            []
+
+
+rawHtmlElement : String -> List (Element msg)
+rawHtmlElement str =
+    rawHtml str |> List.map html
+
+
+dropdownLabel : Bool -> String -> Element Msg
+dropdownLabel expanded labelString =
+    let
+        arrow =
+            if expanded then
+                "&#x25BC; "
+
+            else
+                "&#x25BA; "
+    in
+    row [] (rawHtmlElement arrow ++ [ text labelString ])
 
 
 view : Model -> Html.Html Msg
@@ -188,24 +298,31 @@ view model =
 div[role='button'] { font-size: 12px; background: #dddddd; color: #000; border: solid 1px #a9a9a9; padding: 2px; }
     """ ])
             , column [ spacing 24 ]
-                [ text model.setupParserMessage
-                , row
-                    [ spacing 24 ]
-                    [ viewCarForm model
-                    , viewTrackForm model
-                    , viewNameFilterForm model
-                    ]
-                , viewAvailableSetups model
-                , column [ spacing 4 ]
-                    [ text "Selected Setups"
-                    , case model.selectedSetupIds of
-                        [] ->
-                            text "(none selected)"
+                (Input.button [ Font.underline, Background.color (rgb255 0 0 0), Font.color <| rgb255 255 255 255 ] { onPress = Just ToggleShowMessages, label = dropdownLabel model.showMessages model.statusText }
+                    :: (if model.showMessages then
+                            [ text model.messages ]
 
-                        _ ->
-                            viewSelectedSetups model
-                    ]
-                ]
+                        else
+                            []
+                       )
+                    ++ [ row
+                            [ spacing 24 ]
+                            [ viewCarForm model
+                            , viewTrackForm model
+                            , viewNameFilterForm model
+                            ]
+                       , viewAvailableSetups model
+                       , column [ spacing 4 ]
+                            [ text "Selected Setups"
+                            , case model.selectedSetupIds of
+                                [] ->
+                                    text "(none selected)"
+
+                                _ ->
+                                    viewSelectedSetups model
+                            ]
+                       ]
+                )
             ]
 
 

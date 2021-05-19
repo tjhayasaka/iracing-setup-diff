@@ -13,18 +13,31 @@ type DropTargetIdType
 
 
 type alias Model =
-    { maybeCar : Maybe Car.Car
+    { defaultSetupDirectory : String
+    , storedSetupDirectory : Maybe String
+    , setupDirectory : String
+    , setups : Dict Setup.Id Setup.Setup
+    , showMessages : Bool
+    , statusText : String
+    , messages : String
+    , maybeCar : Maybe Car.Car
     , maybeTrack : Maybe Track.Track
     , nameFilterText : String
     , selectedSetupIds : List Setup.Id
     , dragDropState : DragDrop.State Setup.Id DropTargetIdType
-    , setups : Dict Setup.Id Setup.Setup
-    , setupParserMessage : String
     }
 
 
 type Msg
-    = ParseSetupFiles String
+    = Reload ()
+    | DoneGetDefaultSetupDirectory String
+    | DoneGetDefaultSetupDirectoryError String
+    | DoneGetStoredSetupDirectory String
+    | DoneGetStoredSetupDirectoryError String
+    | DoneGetSetupDirectory String
+    | StartReadExportedSetupFiles ()
+    | DoneReadExportedSetupFiles String
+    | ToggleShowMessages
     | CarChanged String
     | TrackChanged String
     | NameFilterTextChanged String

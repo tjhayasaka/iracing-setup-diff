@@ -11,11 +11,21 @@
 
   <script type="text/javascript" src="elm.min.js"></script>
   <script>
-    var app = Elm.Main.init({
-      node: document.getElementById("container"),
-      flags: window.api.getSetupDirectory()
+   let app = Elm.Main.init({
+      node: document.getElementById("container")
     });
-    app.ports.readSetupFiles.subscribe(function(directory) {
+    app.ports.getDefaultSetupDirectory.subscribe(function() {
+      window.api.getDefaultSetupDirectory(app);
+    });
+    app.ports.getStoredSetupDirectory.subscribe(function() {
+      window.api.getStoredSetupDirectory(app);
+    });
+    app.ports.getSetupDirectory.subscribe(function(args) {
+      const defaultSetupDirectory = args[0]
+      const storedSetupDirectory = args[1]
+      window.api.getSetupDirectory(app, defaultSetupDirectory, storedSetupDirectory);
+    });
+    app.ports.readExportedSetupFiles.subscribe(function(directory) {
       window.api.readExportedSetupFiles(app, directory);
     });
   </script>

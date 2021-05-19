@@ -4,8 +4,10 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
+    "format": "elm-format --yes ../src/",
     "build-dev-watch": "chokidar '../src/*.elm' -c 'npm run build-dev'",
     "build-watch": "chokidar '../src/*.elm' -c 'npm run build'",
+    "build-debug": "( cd .. && echo \"make: Entering directory '$(pwd)'\" && elm make src/Main.elm --output electron/elm.js ) && cp -p elm.js elm.min.js",
     "build-dev": "( cd .. && echo \"make: Entering directory '$(pwd)'\" && elm make src/Main.elm --optimize --output electron/elm.js ) && cp -p elm.js elm.min.js",
     "build": "( cd .. && echo \"make: Entering directory '$(pwd)'\" && elm make src/Main.elm --optimize --output electron/elm.js ) && npm run uglify",
     "uglify": "uglifyjs elm.js --compress 'pure_funcs=[F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9],pure_getters,keep_fargs=false,unsafe_comps,unsafe' | uglifyjs --mangle --output elm.min.js; echo $?"
@@ -15,5 +17,8 @@
     "electron": "^12.0.7",
     "elm": "^0.19.1-5",
     "uglify-js": "^3.13.6"
+  },
+  "dependencies": {
+    "winreg": "^1.2.4"
   }
 }

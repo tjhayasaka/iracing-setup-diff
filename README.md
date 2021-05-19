@@ -1,5 +1,8 @@
 *
 
-(cd electron && npm run build-watch)
+(cd electron && npm run build-dev-watch)
 
 (cd electron && npm start)
+
+*
+

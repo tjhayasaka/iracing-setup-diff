@@ -1,7 +1,52 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
+function getDefaultSetupDirectory(app)
+{
+  const Registry = require("winreg");
+  let registry = new Registry({
+    hive: Registry.HKCU,
+    key: "\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders"
+  });
+  registry.values(function (err, items) {
+    if (err) {
+      const message = "couldn't retrieve registry '" + registry.key + "' from HKCU: " + err
+      console.log(message);
+      app.ports.doneGetDefaultSetupDirectoryError.send(message);
+      return;
+    }
+
+    let r = null;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].name === "Personal") {
+        r = items[i].value;
+        break;
+      }
+    }
+
+    if (!r) {
+      const message = "couldn't find 'Personal' in registry '" + registry.key + "' from HKCU"
+      console.log(message);
+      app.ports.doneGetDefaultSetupDirectoryError.send(message);
+      return;
+    }
+
+    const path = require('path');
+    r = path.join(r, "iRacing/setups").replaceAll("%USERPROFILE%", process.env.USERPROFILE || "envvar_%USERPROFILE%_does_not_exist");
+    console.log("defaultSetupDirectory = " + r);
+    app.ports.doneGetDefaultSetupDirectory.send(r);
+  });
+}
+
+function getStoredSetupDirectory(app)
+{
+  app.ports.doneGetStoredSetupDirectory.send("/home/hayasaka/new/i/iracing/setups");
+  //app.ports.doneGetStoredSetupDirectoryError.send("not implemented");
+}
+
 function getSetupDirectory_(directory)
 {
+  if (!directory)
+    return null;
   const fs = require('fs');
   try {
     const stat = fs.lstatSync(directory)
@@ -13,11 +58,10 @@ function getSetupDirectory_(directory)
   }
 }
 
-function getSetupDirectory()
+function getSetupDirectory(app, defaultSetupDirectory, storedSetupDirectory)
 {
-  const d0 = "C:/Users/hayasaka/Documents/iRacing/setups";
-  const d1 = "/home/hayasaka/new/i/iracing/setups/";
-  return getSetupDirectory_(d0) || getSetupDirectory_(d1) || d0;
+  directory = getSetupDirectory_(storedSetupDirectory) || defaultSetupDirectory;
+  app.ports.doneGetSetupDirectory.send(directory);
 }
 
 function readExportedSetupFiles_(setupDirectory, relativeDirectory)
@@ -35,7 +79,7 @@ function readExportedSetupFiles_(setupDirectory, relativeDirectory)
       } else if (isFile) {
         const commonProps = { basename: basename, filename: relativeDirectory.replace("/", "") + basename };
         if (basename == "-Current-")
-          return [{ ignored: { ...commonProps, ...{ what: "-Current-" } } }];
+          return [{ ignored: { ...commonProps, ...{ what: "binary setup file" } } }];
         if (basename.endsWith(".sto"))
           return [{ ignored: { ...commonProps, ...{ what: "binary setup file" } } }];
         if (basename.endsWith(".htm"))
@@ -56,14 +100,20 @@ function readExportedSetupFiles_(setupDirectory, relativeDirectory)
 function readExportedSetupFiles(app, directory)
 {
   const result = readExportedSetupFiles_(directory, "/");
-  app.ports.doneReadSetupFiles.send(JSON.stringify(result));
+  app.ports.doneReadExportedSetupFiles.send(JSON.stringify(result));
 }
 
 contextBridge.exposeInMainWorld('api', {
-  getSetupDirectory() {
-    return getSetupDirectory();
+  getDefaultSetupDirectory(app) {
+    getDefaultSetupDirectory(app);
+  },
+  getStoredSetupDirectory(app) {
+    getStoredSetupDirectory(app);
+  },
+  getSetupDirectory(app, defaultSetupDirectory, storedSetupDirectory) {
+    getSetupDirectory(app, defaultSetupDirectory, storedSetupDirectory);
   },
   readExportedSetupFiles(app, directory) {
-    return readExportedSetupFiles(app, directory);
+    readExportedSetupFiles(app, directory);
   }
 })

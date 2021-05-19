@@ -214,16 +214,16 @@ parseSetupFiles_ model setupOrIgnoredList =
                         Setup_ s ->
                             case parseSetupHtml s.filename s.setupHtml of
                                 Err error ->
-                                    { ctx | numErrors = ctx.numErrors + 1, messages = ctx.messages ++ [ s.filename ++ ": " ++ error ] }
+                                    { ctx | numErrors = ctx.numErrors + 1, messages = ctx.messages ++ [ "ERROR: " ++ s.filename ++ ": " ++ error ] }
 
                                 Ok setup ->
                                     { ctx | numSetups = ctx.numSetups + 1, setups = setup :: ctx.setups }
 
                         Ignored i ->
-                            { ctx | numIgnored = ctx.numIgnored + 1 }
+                            { ctx | numIgnored = ctx.numIgnored + 1, messages = ctx.messages ++ [ "ignored (" ++ i.what ++ "): " ++ i.filename ] }
 
                         Error_ e ->
-                            { ctx | numErrors = ctx.numErrors + 1, messages = ctx.messages ++ [ e.filename ++ ": " ++ e.what ] }
+                            { ctx | numErrors = ctx.numErrors + 1, messages = ctx.messages ++ [ "ERROR: " ++ e.filename ++ ": " ++ e.what ] }
             in
             { ctx_ | numFiles = ctx_.numFiles + 1 }
 
@@ -232,10 +232,14 @@ parseSetupFiles_ model setupOrIgnoredList =
 
         toDictEntry item =
             ( item.id, item )
+
+        statusText =
+            String.fromInt result.numFiles ++ " files (" ++ String.fromInt result.numSetups ++ " setups, " ++ String.fromInt result.numIgnored ++ " ignored, " ++ String.fromInt result.numErrors ++ " errors)"
     in
     { model
         | setups = Dict.fromList (List.map toDictEntry result.setups)
-        , setupParserMessage = String.fromInt result.numFiles ++ " files (" ++ String.fromInt result.numSetups ++ " setups, " ++ String.fromInt result.numIgnored ++ " ignored, " ++ String.fromInt result.numErrors ++ " errors)\n" ++ String.join "\n" result.messages
+        , statusText = statusText
+        , messages = model.messages ++ String.join "\n" result.messages ++ "\n" ++ statusText ++ "\n"
     }
 
 
@@ -243,7 +247,7 @@ parseSetupFiles : Model -> String -> Model
 parseSetupFiles model json =
     case decodeJson json of
         Err error ->
-            { model | setupParserMessage = "internal application error: fail to decode json: " ++ errorToString error }
+            { model | messages = model.messages ++ "internal application error: fail to decode json: " ++ errorToString error ++ "\n" }
 
         Ok setupOrIgnoredList ->
             parseSetupFiles_ model setupOrIgnoredList

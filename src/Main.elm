@@ -164,7 +164,14 @@ update msg model =
             ( { model | statusText = "loading exported setup files..." }, readExportedSetupFiles model.setupDirectory )
 
         DoneReadExportedSetupFiles json ->
-            ( SetupParser.parseSetupFiles model json, Cmd.none )
+            ( SetupParser.parseSetupFiles model json, nextMsg CleanUpSelection () )
+
+        CleanUpSelection () ->
+            let
+                cleaned =
+                    Setup.getMany model.selectedSetupIds model.setups |> List.map .id
+            in
+            ( { model | selectedSetupIds = cleaned }, Cmd.none )
 
         ToggleShowMessages ->
             ( { model | showMessages = not model.showMessages }, Cmd.none )
@@ -298,7 +305,10 @@ view model =
 div[role='button'] { font-size: 12px; background: #dddddd; color: #000; border: solid 1px #a9a9a9; padding: 2px; }
     """ ])
             , column [ spacing 24 ]
-                (Input.button [ Font.underline, Background.color (rgb255 0 0 0), Font.color <| rgb255 255 255 255 ] { onPress = Just ToggleShowMessages, label = dropdownLabel model.showMessages model.statusText }
+                (row [ width fill ]
+                    [ Input.button [ alignLeft, Font.underline, Background.color (rgb255 0 0 0), Font.color <| rgb255 255 255 255 ] { onPress = Just ToggleShowMessages, label = dropdownLabel model.showMessages model.statusText }
+                    , Input.button [ alignRight ] { onPress = Just (Reload ()), label = text "Reload" }
+                    ]
                     :: (if model.showMessages then
                             [ text model.messages ]
 

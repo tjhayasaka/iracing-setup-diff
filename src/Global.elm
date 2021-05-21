@@ -37,6 +37,7 @@ type Msg
     | DoneGetSetupDirectory String
     | StartReadExportedSetupFiles ()
     | DoneReadExportedSetupFiles String
+    | CleanUpSelection ()
     | ToggleShowMessages
     | CarChanged String
     | TrackChanged String

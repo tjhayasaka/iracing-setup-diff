@@ -30,6 +30,7 @@ type alias Model =
 
 type Msg
     = Reload ()
+    | OpenSetupDirectryChooser
     | DoneGetDefaultSetupDirectory String
     | DoneGetDefaultSetupDirectoryError String
     | DoneGetStoredSetupDirectory String

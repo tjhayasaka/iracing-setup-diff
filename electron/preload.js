@@ -1,6 +1,17 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
-function getDefaultSetupDirectory(app)
+let storedSetupDirectory = "/home/hayasaka/new/i/iracing/setups";
+
+async function openSetupDirectoryChooser(app)
+{
+  const directory = await ipcRenderer.invoke("openSetupDirectoryChooser");
+  if (directory) {
+    storedSetupDirectory = "" + directory;
+    app.ports.doneGetStoredSetupDirectory.send(storedSetupDirectory);
+  }
+}
+
+async function getDefaultSetupDirectory(app)
 {
   const Registry = require("winreg");
   let registry = new Registry({
@@ -39,7 +50,7 @@ function getDefaultSetupDirectory(app)
 
 function getStoredSetupDirectory(app)
 {
-  app.ports.doneGetStoredSetupDirectory.send("/home/hayasaka/new/i/iracing/setups");
+  app.ports.doneGetStoredSetupDirectory.send(storedSetupDirectory);
   //app.ports.doneGetStoredSetupDirectoryError.send("not implemented");
 }
 
@@ -104,6 +115,9 @@ function readExportedSetupFiles(app, directory)
 }
 
 contextBridge.exposeInMainWorld('api', {
+  openSetupDirectoryChooser(app) {
+    openSetupDirectoryChooser(app);
+  },
   getDefaultSetupDirectory(app) {
     getDefaultSetupDirectory(app);
   },

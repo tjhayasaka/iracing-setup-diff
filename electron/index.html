@@ -14,6 +14,9 @@
    let app = Elm.Main.init({
       node: document.getElementById("container")
     });
+    app.ports.openSetupDirectoryChooser.subscribe(function() {
+      window.api.openSetupDirectoryChooser(app);
+    });
     app.ports.getDefaultSetupDirectory.subscribe(function() {
       window.api.getDefaultSetupDirectory(app);
     });

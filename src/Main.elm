@@ -42,6 +42,9 @@ nextMsg msg arg =
 -- PORTS
 
 
+port openSetupDirectoryChooser : () -> Cmd msg
+
+
 port getDefaultSetupDirectory : () -> Cmd msg
 
 
@@ -130,6 +133,9 @@ update msg model =
     case msg of
         Reload () ->
             ( { model | statusText = "reloading...", messages = "" }, getDefaultSetupDirectory () )
+
+        OpenSetupDirectryChooser ->
+            ( model, openSetupDirectoryChooser () )
 
         DoneGetDefaultSetupDirectory defaultSetupDirectory ->
             ( { model | defaultSetupDirectory = defaultSetupDirectory }, getStoredSetupDirectory () )
@@ -306,8 +312,14 @@ div[role='button'] { font-size: 12px; background: #dddddd; color: #000; border: 
     """ ])
             , column [ spacing 24 ]
                 (row [ width fill ]
-                    [ Input.button [ alignLeft, Font.underline, Background.color (rgb255 0 0 0), Font.color <| rgb255 255 255 255 ] { onPress = Just ToggleShowMessages, label = dropdownLabel model.showMessages model.statusText }
-                    , Input.button [ alignRight ] { onPress = Just (Reload ()), label = text "Reload" }
+                    [ row [ alignLeft, spacing 12 ]
+                        [ Input.button [ Font.underline, Background.color (rgb255 0 0 0), Font.color <| rgb255 255 255 255 ] { onPress = Just ToggleShowMessages, label = dropdownLabel model.showMessages model.statusText }
+                        , Input.button [ alignRight ] { onPress = Just (Reload ()), label = text "Reload" }
+                        ]
+                    , row [ alignRight, spacing 12 ]
+                        [ text ("Setup Directory: '" ++ model.setupDirectory ++ "'")
+                        , Input.button [] { onPress = Just OpenSetupDirectryChooser, label = text "Change" }
+                        ]
                     ]
                     :: (if model.showMessages then
                             [ text model.messages ]

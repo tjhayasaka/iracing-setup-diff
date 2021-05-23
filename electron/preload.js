@@ -100,15 +100,15 @@ async function readExportedSetupFiles_(app, pid, setupDirectory, relativeDirecto
     const processOne = async basename => {
       if (pid != pidReadExportedSetupFiles)
         return [];
-      const localFilename = directory + basename
-      const stat = fs.lstatSync(localFilename)
-      const isDirectory = stat.isDirectory()
-      const isFile = stat.isFile()
+      const localFilename = directory + basename;
+      const stat = fs.lstatSync(localFilename);
+      const isDirectory = stat.isDirectory();
+      const isFile = stat.isFile();
+      const commonProps = { basename: basename, filename: relativeDirectory.replace("/", "") + basename };
       if (isDirectory) {
         const _ = await readExportedSetupFiles_(app, pid, setupDirectory, relativeDirectory + basename + "/");
         return [];
       } else if (isFile) {
-        const commonProps = { basename: basename, filename: relativeDirectory.replace("/", "") + basename };
         if (basename == "-Current-")
           return [{ ignored: { ...commonProps, ...{ what: "binary setup file" } } }];
         if (basename.endsWith(".sto"))

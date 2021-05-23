@@ -1,5 +1,7 @@
 // Modules to control application life and create native browser window
-const {app, BrowserWindow, Menu, dialog, ipcMain} = require('electron')
+const { app, BrowserWindow, Menu, dialog, ipcMain } = require('electron')
+
+if (require('electron-squirrel-startup')) return app.quit();
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.

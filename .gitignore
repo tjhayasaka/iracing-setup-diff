@@ -1,5 +1,6 @@
 elm-stuff
 src/Secrets.elm
 electron/node_modules
+electron/out
 electron/elm.js
 electron/elm.min.js

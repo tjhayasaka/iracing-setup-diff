@@ -31,6 +31,9 @@
     app.ports.readExportedSetupFiles.subscribe(function(directory) {
       window.api.readExportedSetupFiles(app, directory);
     });
+    app.ports.cancelReadExportedSetupFiles.subscribe(function(pid) {
+      window.api.cancelReadExportedSetupFiles(app, pid);
+    });
   </script>
   <link rel="stylesheet" href="style.css" />
 

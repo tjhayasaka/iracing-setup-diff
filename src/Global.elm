@@ -66,6 +66,8 @@ type Msg
     | StartedReadExportedSetupFiles Int
     | PartialResultReadExportedSetupFiles ( Int, String )
     | DoneReadExportedSetupFiles Int
+    | CancelReadExportedSetupFiles
+    | DoneCancelReadExportedSetupFiles Int
     | CleanUpSelection ()
     | ToggleShowMessages
     | CarChanged String

@@ -8,6 +8,7 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
 import Element.Input as Input
+import Element.Lazy
 import Global exposing (..)
 import Html
 import Html.Attributes
@@ -85,6 +86,12 @@ port partialResultReadExportedSetupFiles : (( Int, String ) -> msg) -> Sub msg
 
 
 port doneReadExportedSetupFiles : (Int -> msg) -> Sub msg
+
+
+port cancelReadExportedSetupFiles : Int -> Cmd msg
+
+
+port doneCancelReadExportedSetupFiles : (Int -> msg) -> Sub msg
 
 
 
@@ -195,6 +202,26 @@ update msg model =
             else
                 ( model, Cmd.none )
 
+        CancelReadExportedSetupFiles ->
+            case model.pidReadExportedSetupFiles of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just pid ->
+                    ( { model | statusText = "cancelling..." }, cancelReadExportedSetupFiles pid )
+
+        DoneCancelReadExportedSetupFiles pid ->
+            case model.pidReadExportedSetupFiles of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just pid_ ->
+                    if pid_ == pid then
+                        ( { model | statusText = "canceled", pidReadExportedSetupFiles = Nothing }, Cmd.none )
+
+                    else
+                        ( model, Cmd.none )
+
         CleanUpSelection () ->
             let
                 cleaned =
@@ -283,6 +310,7 @@ subscriptions model =
         , startedReadExportedSetupFiles StartedReadExportedSetupFiles
         , partialResultReadExportedSetupFiles PartialResultReadExportedSetupFiles
         , doneReadExportedSetupFiles DoneReadExportedSetupFiles
+        , doneCancelReadExportedSetupFiles DoneCancelReadExportedSetupFiles
         ]
 
 
@@ -318,6 +346,16 @@ dropdownLabel expanded labelString =
     row [] (rawHtmlElement arrow ++ [ text labelString ])
 
 
+reloadOrCancelButton : Maybe Int -> Element Msg
+reloadOrCancelButton pidReadExportedSetupFiles =
+    case pidReadExportedSetupFiles of
+        Nothing ->
+            Input.button [ alignRight ] { onPress = Just (Reload ()), label = text "Reload" }
+
+        Just _ ->
+            Input.button [ alignRight ] { onPress = Just CancelReadExportedSetupFiles, label = text "Cancel" }
+
+
 view : Model -> Html.Html Msg
 view model =
     Element.layout
@@ -341,7 +379,7 @@ div[role='button'] { font-size: 12px; background: #dddddd; color: #000; border: 
                 (row [ width fill ]
                     [ row [ alignLeft, spacing 12 ]
                         [ Input.button [ Font.underline, Background.color (rgb255 0 0 0), Font.color <| rgb255 255 255 255 ] { onPress = Just ToggleShowMessages, label = dropdownLabel model.showMessages model.statusText }
-                        , Input.button [ alignRight ] { onPress = Just (Reload ()), label = text "Reload" }
+                        , Element.Lazy.lazy reloadOrCancelButton model.pidReadExportedSetupFiles
                         ]
                     , row [ alignRight, spacing 12 ]
                         [ text ("Setup Directory: '" ++ model.setupDirectory ++ "'")

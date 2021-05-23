@@ -142,11 +142,18 @@ async function readExportedSetupFiles(app, directory)
   const result = await readExportedSetupFiles_(app, pidReadExportedSetupFiles, directory, "/");
   if (pid != pidReadExportedSetupFiles) {
     console.log("readExportedSetupFiles: " + pid + ": dir = '" + directory + "': canceled");
+    app.ports.doneCancelReadExportedSetupFiles.send(pid);
     return;
   }
   // console.log("readExportedSetupFiles: " + pid + ": dir = '" + directory + "': finish");
 
   app.ports.doneReadExportedSetupFiles.send(pid);
+}
+
+function cancelReadExportedSetupFiles(app, pid)
+{
+  if (pid == pidReadExportedSetupFiles)
+    pidReadExportedSetupFiles += 1;
 }
 
 contextBridge.exposeInMainWorld('api', {
@@ -164,5 +171,8 @@ contextBridge.exposeInMainWorld('api', {
   },
   readExportedSetupFiles(app, directory) {
     readExportedSetupFiles(app, directory);
+  },
+  cancelReadExportedSetupFiles(app, pid) {
+    cancelReadExportedSetupFiles(app, pid);
   }
 })

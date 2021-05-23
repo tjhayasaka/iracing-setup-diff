@@ -2,12 +2,14 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 let storedSetupDirectory = "/home/hayasaka/new/i/iracing/setups";
 
+let pidReadExportedSetupFiles = 0;
+
 async function openSetupDirectoryChooser(app)
 {
   const directory = await ipcRenderer.invoke("openSetupDirectoryChooser");
   if (directory) {
     storedSetupDirectory = "" + directory;
-    app.ports.doneGetStoredSetupDirectory.send(storedSetupDirectory);
+    app.ports.doneSetStoredSetupDirectory.send(storedSetupDirectory);
   }
 }
 
@@ -75,18 +77,24 @@ function getSetupDirectory(app, defaultSetupDirectory, storedSetupDirectory)
   app.ports.doneGetSetupDirectory.send(directory);
 }
 
-function readExportedSetupFiles_(setupDirectory, relativeDirectory)
+async function readExportedSetupFiles_(app, pid, setupDirectory, relativeDirectory)
 {
+  app.ports.progress.send(0);
+  const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
+  await sleep(0); // allow elm to render views
   const fs = require('fs');
   const directory = setupDirectory + relativeDirectory;
   try {
-    const result = fs.readdirSync(directory).flatMap(basename => {
+    const processOne = async basename => {
+      if (pid != pidReadExportedSetupFiles)
+        return [];
       const localFilename = directory + basename
       const stat = fs.lstatSync(localFilename)
       const isDirectory = stat.isDirectory()
       const isFile = stat.isFile()
       if (isDirectory) {
-        return readExportedSetupFiles_(setupDirectory, relativeDirectory + basename + "/");
+        const _ = await readExportedSetupFiles_(app, pid, setupDirectory, relativeDirectory + basename + "/");
+        return [];
       } else if (isFile) {
         const commonProps = { basename: basename, filename: relativeDirectory.replace("/", "") + basename };
         if (basename == "-Current-")
@@ -98,20 +106,35 @@ function readExportedSetupFiles_(setupDirectory, relativeDirectory)
         return [{ ignored: { ...commonProps, ...{ what: "unknown file type" } } }];
       } else
         return [{ ignored: { ...commonProps, ...{ what: "unknown directory entry type" } } }];
-    });
-    return result;
+    };
+    const result_ = await Promise.all(fs.readdirSync(directory).map(processOne));
+    const result = result_.flat(Infinity);
+    // console.log(result)
+    app.ports.partialResultReadExportedSetupFiles.send([pid, JSON.stringify(result)]);
+    return;
   }
   catch (ex) {
     console.error(ex.name + ': ' + ex.message);
     const commonProps = { basename: "", filename: directory };
-    return [{ error: { ...commonProps, ...{ what: "caught exception: " + ex.name + ": " + ex.message } } }];
+    const result = [{ error: { ...commonProps, ...{ what: "caught exception: " + ex.name + ": " + ex.message } } }];
+    app.ports.partialResultReadExportedSetupFiles.send([pid, JSON.stringify(result)]);
+    return;
   }
 }
 
-function readExportedSetupFiles(app, directory)
+async function readExportedSetupFiles(app, directory)
 {
-  const result = readExportedSetupFiles_(directory, "/");
-  app.ports.doneReadExportedSetupFiles.send(JSON.stringify(result));
+  const pid = (pidReadExportedSetupFiles += 1);
+  app.ports.startedReadExportedSetupFiles.send(pid);
+  // console.log("readExportedSetupFiles: " + pid + ": dir = '" + directory + "': start");
+  const result = await readExportedSetupFiles_(app, pidReadExportedSetupFiles, directory, "/");
+  if (pid != pidReadExportedSetupFiles) {
+    console.log("readExportedSetupFiles: " + pid + ": dir = '" + directory + "': canceled");
+    return;
+  }
+  // console.log("readExportedSetupFiles: " + pid + ": dir = '" + directory + "': finish");
+
+  app.ports.doneReadExportedSetupFiles.send(pid);
 }
 
 contextBridge.exposeInMainWorld('api', {

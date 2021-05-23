@@ -1,4 +1,4 @@
-module Master exposing (cars, setups_, tracks)
+module Master exposing (cars, tracks)
 
 import Car
 import Dict exposing (Dict)
@@ -46,8 +46,3 @@ tracks =
         , { id = 373, shortName = "weedsport", longName = "Weedsport Speedway" }
         , { id = 387, shortName = "cedarlake", longName = "Cedar Lake Speedway" }
         ]
-
-
-setups_ : Dict Setup.Id Setup.Setup
-setups_ =
-    Dict.empty

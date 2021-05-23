@@ -1,4 +1,4 @@
-module SetupParser exposing (parseSetupFiles)
+module SetupParser exposing (parseAppendSetupFiles)
 
 import Car
 import Dict exposing (fromList)
@@ -204,8 +204,8 @@ decodeJson json =
     decodeString (list rawDecoder) json
 
 
-parseSetupFiles_ : Model -> List SetupOrIgnored -> Model
-parseSetupFiles_ model setupOrIgnoredList =
+parseAppendSetupFiles_ : Model -> List SetupOrIgnored -> Model
+parseAppendSetupFiles_ model setupOrIgnoredList =
     let
         processOne setupOrIgnored ctx =
             let
@@ -233,21 +233,43 @@ parseSetupFiles_ model setupOrIgnoredList =
         toDictEntry item =
             ( item.id, item )
 
-        statusText =
-            String.fromInt result.numFiles ++ " files (" ++ String.fromInt result.numSetups ++ " setups, " ++ String.fromInt result.numIgnored ++ " ignored, " ++ String.fromInt result.numErrors ++ " errors)"
+        setupsToAppend =
+            Dict.fromList (List.map toDictEntry result.setups)
+
+        allSetups =
+            Dict.union setupsToAppend model.setups
+
+        numSetups =
+            model.numSetups + result.numSetups
+
+        numIgnored =
+            model.numIgnored + result.numIgnored
+
+        numErrors =
+            model.numErrors + result.numErrors
+
+        numFiles =
+            numSetups + numIgnored + numErrors
     in
     { model
-        | setups = Dict.fromList (List.map toDictEntry result.setups)
-        , statusText = statusText
-        , messages = model.messages ++ String.join "\n" result.messages ++ "\n" ++ statusText ++ "\n"
+        | numSetups = numSetups
+        , numIgnored = numIgnored
+        , numErrors = numErrors
+        , setups = allSetups
+        , messages =
+            if result.messages == [] then
+                model.messages
+
+            else
+                model.messages ++ String.join "\n" result.messages ++ "\n"
     }
 
 
-parseSetupFiles : Model -> String -> Model
-parseSetupFiles model json =
+parseAppendSetupFiles : Model -> String -> Model
+parseAppendSetupFiles model json =
     case decodeJson json of
         Err error ->
             { model | messages = model.messages ++ "internal application error: fail to decode json: " ++ errorToString error ++ "\n" }
 
         Ok setupOrIgnoredList ->
-            parseSetupFiles_ model setupOrIgnoredList
+            parseAppendSetupFiles_ model setupOrIgnoredList

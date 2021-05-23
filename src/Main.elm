@@ -42,6 +42,9 @@ nextMsg msg arg =
 -- PORTS
 
 
+port progress : (Int -> msg) -> Sub msg
+
+
 port openSetupDirectoryChooser : () -> Cmd msg
 
 
@@ -55,6 +58,9 @@ port doneGetDefaultSetupDirectoryError : (String -> msg) -> Sub msg
 
 
 port getStoredSetupDirectory : () -> Cmd msg
+
+
+port doneSetStoredSetupDirectory : (String -> msg) -> Sub msg
 
 
 port doneGetStoredSetupDirectory : (String -> msg) -> Sub msg
@@ -72,7 +78,13 @@ port doneGetSetupDirectory : (String -> msg) -> Sub msg
 port readExportedSetupFiles : String -> Cmd msg
 
 
-port doneReadExportedSetupFiles : (String -> msg) -> Sub msg
+port startedReadExportedSetupFiles : (Int -> msg) -> Sub msg
+
+
+port partialResultReadExportedSetupFiles : (( Int, String ) -> msg) -> Sub msg
+
+
+port doneReadExportedSetupFiles : (Int -> msg) -> Sub msg
 
 
 
@@ -81,23 +93,7 @@ port doneReadExportedSetupFiles : (String -> msg) -> Sub msg
 
 init : () -> ( Model, Cmd Msg )
 init () =
-    let
-        initialModel =
-            { defaultSetupDirectory = "/"
-            , storedSetupDirectory = Nothing
-            , setupDirectory = "/"
-            , setups = Master.setups_ -- Dict.fromList []
-            , showMessages = False
-            , statusText = "initializing app..."
-            , messages = ""
-            , maybeCar = Nothing
-            , maybeTrack = Nothing
-            , nameFilterText = ""
-            , selectedSetupIds = []
-            , dragDropState = DragDrop.initialState
-            }
-    in
-    ( initialModel, nextMsg Reload () )
+    ( Global.initialModel, nextMsg Reload () )
 
 
 
@@ -134,6 +130,9 @@ update msg model =
         Reload () ->
             ( { model | statusText = "reloading...", messages = "" }, getDefaultSetupDirectory () )
 
+        Progress _ ->
+            ( model, Cmd.none )
+
         OpenSetupDirectryChooser ->
             ( model, openSetupDirectoryChooser () )
 
@@ -152,6 +151,9 @@ update msg model =
             , getStoredSetupDirectory ()
             )
 
+        DoneSetStoredSetupDirectory storedSetupDirectory ->
+            ( { model | storedSetupDirectory = Just storedSetupDirectory, messages = "Updated stored exported setup directory: new value = '" ++ storedSetupDirectory ++ "'\n" }, getSetupDirectory ( model.defaultSetupDirectory, storedSetupDirectory ) )
+
         DoneGetStoredSetupDirectory storedSetupDirectory ->
             ( { model | storedSetupDirectory = Just storedSetupDirectory }, getSetupDirectory ( model.defaultSetupDirectory, storedSetupDirectory ) )
 
@@ -167,10 +169,31 @@ update msg model =
             ( { model | setupDirectory = setupDirectory }, nextMsg StartReadExportedSetupFiles () )
 
         StartReadExportedSetupFiles () ->
-            ( { model | statusText = "loading exported setup files..." }, readExportedSetupFiles model.setupDirectory )
+            ( { model | statusText = "loading exported setup files...", pidReadExportedSetupFiles = Nothing, numSetups = 0, numIgnored = 0, numErrors = 0, setups = Dict.empty }, readExportedSetupFiles model.setupDirectory )
 
-        DoneReadExportedSetupFiles json ->
-            ( SetupParser.parseSetupFiles model json, nextMsg CleanUpSelection () )
+        StartedReadExportedSetupFiles pid ->
+            ( { model | pidReadExportedSetupFiles = Just pid }, Cmd.none )
+
+        PartialResultReadExportedSetupFiles ( pid, json ) ->
+            if model.pidReadExportedSetupFiles == Just pid then
+                ( SetupParser.parseAppendSetupFiles model json, Cmd.none )
+
+            else
+                ( model, Cmd.none )
+
+        DoneReadExportedSetupFiles pid ->
+            if model.pidReadExportedSetupFiles == Just pid then
+                let
+                    numFiles =
+                        model.numSetups + model.numIgnored + model.numErrors
+
+                    statusText =
+                        String.fromInt numFiles ++ " files (" ++ String.fromInt model.numSetups ++ " setups, " ++ String.fromInt model.numIgnored ++ " ignored, " ++ String.fromInt model.numErrors ++ " errors)"
+                in
+                ( { model | pidReadExportedSetupFiles = Nothing, statusText = statusText }, nextMsg CleanUpSelection () )
+
+            else
+                ( model, Cmd.none )
 
         CleanUpSelection () ->
             let
@@ -250,11 +273,15 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ doneGetDefaultSetupDirectory DoneGetDefaultSetupDirectory
+        [ progress Progress
+        , doneGetDefaultSetupDirectory DoneGetDefaultSetupDirectory
         , doneGetDefaultSetupDirectoryError DoneGetDefaultSetupDirectoryError
+        , doneSetStoredSetupDirectory DoneSetStoredSetupDirectory
         , doneGetStoredSetupDirectory DoneGetStoredSetupDirectory
         , doneGetStoredSetupDirectoryError DoneGetStoredSetupDirectoryError
         , doneGetSetupDirectory DoneGetSetupDirectory
+        , startedReadExportedSetupFiles StartedReadExportedSetupFiles
+        , partialResultReadExportedSetupFiles PartialResultReadExportedSetupFiles
         , doneReadExportedSetupFiles DoneReadExportedSetupFiles
         ]
 

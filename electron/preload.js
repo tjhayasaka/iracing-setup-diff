@@ -1,14 +1,15 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
-let storedSetupDirectory = "/home/hayasaka/new/i/iracing/setups";
-
 let pidReadExportedSetupFiles = 0;
+
+const storageKeyStoredSetupDirectory = "setupDirectory";
 
 async function openSetupDirectoryChooser(app)
 {
   const directory = await ipcRenderer.invoke("openSetupDirectoryChooser");
   if (directory) {
-    storedSetupDirectory = "" + directory;
+    const storedSetupDirectory = "" + directory;
+    localStorage.setItem(storageKeyStoredSetupDirectory, storedSetupDirectory);
     app.ports.doneSetStoredSetupDirectory.send(storedSetupDirectory);
   }
 }
@@ -52,8 +53,19 @@ async function getDefaultSetupDirectory(app)
 
 function getStoredSetupDirectory(app)
 {
-  app.ports.doneGetStoredSetupDirectory.send(storedSetupDirectory);
-  //app.ports.doneGetStoredSetupDirectoryError.send("not implemented");
+  try {
+    const storedSetupDirectory = localStorage.getItem(storageKeyStoredSetupDirectory);
+    if (storedSetupDirectory)
+      app.ports.doneGetStoredSetupDirectory.send(storedSetupDirectory);
+    else
+      app.ports.doneGetStoredSetupDirectoryError.send("couldn't find '" + storageKeyStoredSetupDirectory + "' in localStorage");
+  }
+  catch (ex) {
+    console.error(ex.name + ': ' + ex.message);
+    const message = "" + ex.name + ': ' + ex.message;
+    console.log(message)
+    app.ports.doneGetStoredSetupDirectoryError.send(message);
+  }
 }
 
 function getSetupDirectory_(directory)

@@ -135,7 +135,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Reload () ->
-            ( { model | statusText = "reloading...", messages = "" }, getDefaultSetupDirectory () )
+            ( { model | statusText = "reloading...", messages = "", messagesSize = 0, messagesTruncated = False }, getDefaultSetupDirectory () )
 
         Progress _ ->
             ( model, Cmd.none )
@@ -159,7 +159,7 @@ update msg model =
             )
 
         DoneSetStoredSetupDirectory storedSetupDirectory ->
-            ( { model | storedSetupDirectory = Just storedSetupDirectory, messages = "Updated stored exported setup directory: new value = '" ++ storedSetupDirectory ++ "'\n" }, getSetupDirectory ( model.defaultSetupDirectory, storedSetupDirectory ) )
+            ( { model | storedSetupDirectory = Just storedSetupDirectory, messages = "Updated stored exported setup directory: new value = '" ++ storedSetupDirectory ++ "'\n", messagesSize = 0, messagesTruncated = False }, getSetupDirectory ( model.defaultSetupDirectory, storedSetupDirectory ) )
 
         DoneGetStoredSetupDirectory storedSetupDirectory ->
             ( { model | storedSetupDirectory = Just storedSetupDirectory }, getSetupDirectory ( model.defaultSetupDirectory, storedSetupDirectory ) )

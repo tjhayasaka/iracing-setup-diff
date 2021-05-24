@@ -110,9 +110,9 @@ async function readExportedSetupFiles_(app, pid, setupDirectory, relativeDirecto
         return [];
       } else if (isFile) {
         if (basename == "-Current-")
-          return [{ ignored: { ...commonProps, ...{ what: "binary setup file" } } }];
+          return [{ ignored: { ...commonProps, ...{ what: "" } } }]; // "binary setup file"
         if (basename.endsWith(".sto"))
-          return [{ ignored: { ...commonProps, ...{ what: "binary setup file" } } }];
+          return [{ ignored: { ...commonProps, ...{ what: "" } } }]; // "binary setup file"
         if (basename.endsWith(".htm"))
           return [{ exportedSetupFile: { ...commonProps, ...{ setupHtml: fs.readFileSync(localFilename, "utf8") } } }];
         return [{ ignored: { ...commonProps, ...{ what: "unknown file type" } } }];

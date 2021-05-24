@@ -1,4 +1,4 @@
-module Global exposing (DropTargetIdType(..), ExportedSetupOrInfo(..), Model, Msg(..), initialModel)
+module Global exposing (DropTargetIdType(..), ExportedSetupOrInfo(..), Model, Msg(..), appendMessagesToModel, initialModel)
 
 import Car
 import Dict exposing (Dict)
@@ -23,6 +23,8 @@ type alias Model =
     , showMessages : Bool
     , statusText : String
     , messages : String
+    , messagesSize : Int
+    , messagesTruncated : Bool
     , maybeCar : Maybe Car.Car
     , maybeTrack : Maybe Track.Track
     , nameFilterText : String
@@ -43,6 +45,8 @@ initialModel =
     , showMessages = False
     , statusText = "initializing app..."
     , messages = ""
+    , messagesSize = 0
+    , messagesTruncated = False
     , maybeCar = Nothing
     , maybeTrack = Nothing
     , nameFilterText = ""
@@ -88,3 +92,44 @@ type
     -- used in ports
     = Ignored { what : String }
     | ExportedSetup { basename : String, filename : String }
+
+
+messagesCapacity : Int
+messagesCapacity =
+    200
+
+
+truncateMessagesIfNeeded : Model -> Model
+truncateMessagesIfNeeded model =
+    let
+        hasRoomForMessage =
+            model.messagesSize < messagesCapacity
+
+        noNeedToTruncate =
+            model.messagesTruncated || hasRoomForMessage
+    in
+    if noNeedToTruncate then
+        model
+
+    else
+        { model | messagesTruncated = True, messages = model.messages ++ "(truncated)\n" }
+
+
+appendMessagesToModel : List String -> Model -> Model
+appendMessagesToModel messages model =
+    if messages == [] || model.messagesTruncated then
+        model
+
+    else
+        let
+            model_ =
+                truncateMessagesIfNeeded model
+        in
+        if model_.messagesTruncated then
+            model_
+
+        else
+            { model_
+                | messages = model_.messages ++ String.join "\n" messages ++ "\n"
+                , messagesSize = model_.messagesSize + List.length messages
+            }

@@ -209,21 +209,32 @@ parseAppendSetupFiles_ model setupOrIgnoredList =
     let
         processOne setupOrIgnored ctx =
             let
+                appendMessage message ctx__ =
+                    if model.messagesTruncated then
+                        ctx__
+
+                    else
+                        { ctx__ | messages = message :: ctx__.messages }
+
                 ctx_ =
                     case setupOrIgnored of
                         Setup_ s ->
                             case parseSetupHtml s.filename s.setupHtml of
                                 Err error ->
-                                    { ctx | numErrors = ctx.numErrors + 1, messages = ctx.messages ++ [ "ERROR: " ++ s.filename ++ ": " ++ error ] }
+                                    { ctx | numErrors = ctx.numErrors + 1 } |> appendMessage ("ERROR: " ++ s.filename ++ ": " ++ error)
 
                                 Ok setup ->
                                     { ctx | numSetups = ctx.numSetups + 1, setups = setup :: ctx.setups }
 
                         Ignored i ->
-                            { ctx | numIgnored = ctx.numIgnored + 1, messages = ctx.messages ++ [ "ignored (" ++ i.what ++ "): " ++ i.filename ] }
+                            if i.what == "" then
+                                { ctx | numIgnored = ctx.numIgnored + 1 }
+
+                            else
+                                { ctx | numIgnored = ctx.numIgnored + 1 } |> appendMessage ("ignored (" ++ i.what ++ "): " ++ i.filename)
 
                         Error_ e ->
-                            { ctx | numErrors = ctx.numErrors + 1, messages = ctx.messages ++ [ "ERROR: " ++ e.filename ++ ": " ++ e.what ] }
+                            { ctx | numErrors = ctx.numErrors + 1 } |> appendMessage ("ERROR: " ++ e.filename ++ ": " ++ e.what)
             in
             { ctx_ | numFiles = ctx_.numFiles + 1 }
 
@@ -256,13 +267,8 @@ parseAppendSetupFiles_ model setupOrIgnoredList =
         , numIgnored = numIgnored
         , numErrors = numErrors
         , setups = allSetups
-        , messages =
-            if result.messages == [] then
-                model.messages
-
-            else
-                model.messages ++ String.join "\n" result.messages ++ "\n"
     }
+        |> appendMessagesToModel (List.reverse result.messages)
 
 
 parseAppendSetupFiles : Model -> String -> Model

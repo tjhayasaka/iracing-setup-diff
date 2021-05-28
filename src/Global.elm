@@ -20,6 +20,7 @@ type alias Model =
     , numIgnored : Int
     , numErrors : Int
     , setups : Dict Setup.Id Setup.Setup
+    , showInstructionsDialog : Bool
     , showMessages : Bool
     , statusText : String
     , messages : String
@@ -41,7 +42,8 @@ initialModel =
     , numSetups = 0
     , numIgnored = 0
     , numErrors = 0
-    , setups = Dict.fromList []
+    , setups = Dict.empty
+    , showInstructionsDialog = False
     , showMessages = False
     , statusText = "initializing app..."
     , messages = ""
@@ -59,7 +61,7 @@ initialModel =
 type Msg
     = Reload ()
     | Progress Int
-    | OpenSetupDirectryChooser
+    | OpenSetupDirectryChooser ()
     | DoneGetDefaultSetupDirectory String
     | DoneGetDefaultSetupDirectoryError String
     | DoneSetStoredSetupDirectory String
@@ -74,6 +76,9 @@ type Msg
     | DoneCancelReadExportedSetupFiles Int
     | CleanUpSelection ()
     | ToggleShowMessages
+    | ToggleShowInstructionsDialog
+    | CloseInstructionsDialogThenReload
+    | CloseInstructionsDialogThenOpenSetupDirectryChooser
     | CarChanged String
     | TrackChanged String
     | NameFilterTextChanged String

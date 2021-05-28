@@ -6,6 +6,8 @@ import Dict
 import Dom.DragDrop as DragDrop
 import Element exposing (..)
 import Element.Background as Background
+import Element.Border as Border
+import Element.Events
 import Element.Font as Font
 import Element.Input as Input
 import Element.Lazy
@@ -20,6 +22,8 @@ import Master
 import Setup
 import SetupParser
 import SetupView
+import Svg
+import Svg.Attributes
 import Task
 import Track
 
@@ -140,8 +144,8 @@ update msg model =
         Progress _ ->
             ( model, Cmd.none )
 
-        OpenSetupDirectryChooser ->
-            ( model, openSetupDirectoryChooser () )
+        OpenSetupDirectryChooser () ->
+            ( { model | showInstructionsDialog = False }, openSetupDirectoryChooser () )
 
         DoneGetDefaultSetupDirectory defaultSetupDirectory ->
             ( { model | defaultSetupDirectory = defaultSetupDirectory }, getStoredSetupDirectory () )
@@ -228,6 +232,15 @@ update msg model =
                     Setup.getMany model.selectedSetupIds model.setups |> List.map .id
             in
             ( { model | selectedSetupIds = cleaned }, Cmd.none )
+
+        ToggleShowInstructionsDialog ->
+            ( { model | showInstructionsDialog = not model.showInstructionsDialog }, Cmd.none )
+
+        CloseInstructionsDialogThenReload ->
+            ( { model | showInstructionsDialog = False }, nextMsg Reload () )
+
+        CloseInstructionsDialogThenOpenSetupDirectryChooser ->
+            ( { model | showInstructionsDialog = False }, nextMsg OpenSetupDirectryChooser () )
 
         ToggleShowMessages ->
             ( { model | showMessages = not model.showMessages }, Cmd.none )
@@ -362,6 +375,7 @@ view model =
         [ Font.size 13
         , Background.color (rgb255 0 0 0)
         , Font.color <| rgb255 255 255 255
+        , inFront (instructionsDialog model)
         ]
     <|
         column
@@ -383,7 +397,7 @@ div[role='button'] { font-size: 12px; background: #dddddd; color: #000; border: 
                         ]
                     , row [ alignRight, spacing 12 ]
                         [ text ("Setup Directory: '" ++ model.setupDirectory ++ "'")
-                        , Input.button [] { onPress = Just OpenSetupDirectryChooser, label = text "Change" }
+                        , Input.button [] { onPress = Just (OpenSetupDirectryChooser ()), label = text "Change" }
                         ]
                     ]
                     :: (if model.showMessages then
@@ -478,40 +492,132 @@ viewNameFilterForm model =
 
 viewAvailableSetups : Model -> Element Msg
 viewAvailableSetups model =
-    column [ spacing 4 ]
+    column [ spacing 4, width fill ]
         [ text "Setups"
-        , column [ spacing 4 ]
-            (let
-                entry setup =
-                    let
-                        carName =
-                            Car.get (Car.Id setup.carId) Master.cars |> Maybe.map .longName |> Maybe.withDefault "???"
+        , if model.setups == Dict.empty then
+            viewInstructions
 
-                        maybeSetupIndex =
-                            List.Extra.elemIndex setup.id model.selectedSetupIds
+          else
+            viewAvailableSetups_ model
+        ]
 
-                        indexLabelString =
-                            case maybeSetupIndex of
-                                Nothing ->
-                                    ""
 
-                                Just i ->
-                                    String.fromInt i
-                    in
-                    row [ spacing 8 ]
-                        [ el [ width (fill |> minimum 20) ] (el [ alignRight ] (text indexLabelString))
-                        , Input.checkbox []
-                            { onChange = AddRemoveSetup setup.id
-                            , icon = Input.defaultCheckbox
-                            , checked = maybeSetupIndex /= Nothing
-                            , label = Input.labelRight [] (text (carName ++ " / " ++ setup.name))
-                            }
-                        ]
-             in
-             Setup.filterByCarTrack model.maybeCar model.maybeTrack model.nameFilterText model.setups
-                |> List.map entry
+viewInstructions : Element Msg
+viewInstructions =
+    column [ spacing 4, width fill ]
+        [ el [ width fill, spacing 10, paddingXY 160 10, Font.size 16, Border.color <| rgb255 127 127 127, Border.width 1, Border.solid ]
+            (Element.textColumn []
+                [ el
+                    [ padding 4
+                    , centerX
+                    , Font.center
+                    , width fill
+                    , Font.size 24
+                    , Background.color (rgb255 64 0 0)
+                    , Font.color <| rgb255 255 255 127
+                    ]
+                    (text "No Setup Files Loaded")
+                , paragraph []
+                    [ text "This program can read \"exported setup files\" only.  You need to export your setups manually in the garage screen in iRacing sim.  "
+                    , link [ Element.Events.onClick ToggleShowInstructionsDialog, Font.underline ] { url = "", label = text "more info" }
+                    ]
+                ]
             )
         ]
+
+
+instructionsDialog : Model -> Element Msg
+instructionsDialog model =
+    if not model.showInstructionsDialog then
+        column [] []
+
+    else
+        column [ spacing 4, width fill, height fill, Background.color (rgba255 48 48 48 0.9), Element.Events.onClick ToggleShowInstructionsDialog ]
+            [ el
+                [ width (fill |> minimum 600 |> maximum 600)
+                , centerX
+                , centerY
+                , Font.size 16
+                , Border.color <| rgb255 127 127 127
+                , Border.width 1
+                , Border.solid
+                , Element.Events.onClick ToggleShowInstructionsDialog -- this effectively cancels onClick on parent
+                ]
+                (Element.textColumn [ padding 14, spacing 16 ]
+                    [ paragraph [] [ text "This program can read \"exported setup files\" only.  You need to export your setups manually in the garage screen in iRacing sim:" ]
+                    , Element.textColumn [ padding 14, spacing 16 ]
+                        [ paragraph [] [ text "1. Launch the iRacing sim with correct car and track." ]
+                        , paragraph [] [ text "2. Load a setup you want to export." ]
+                        , paragraph []
+                            [ text "3. Export it.  You can export it in the same directory (recommended), or in separate directory (not recommended, as you need to specify the directory everytime on export)."
+                            , column [ width (px (600 - 56)) ]
+                                [ el [ width fill, behindContent (image [ width fill, alpha 0.6 ] { src = "ss-garage.png", description = "" }) ] <|
+                                    el []
+                                        (html <|
+                                            Svg.svg
+                                                [ Svg.Attributes.viewBox "0 0 1022 841"
+                                                ]
+                                                [ Svg.rect
+                                                    [ Svg.Attributes.x "780"
+                                                    , Svg.Attributes.y "420"
+                                                    , Svg.Attributes.width "250"
+                                                    , Svg.Attributes.height "100"
+                                                    , Svg.Attributes.stroke "cyan"
+                                                    , Svg.Attributes.strokeWidth "12"
+                                                    , Svg.Attributes.fillOpacity "0"
+                                                    ]
+                                                    []
+                                                ]
+                                        )
+                                ]
+                            ]
+                        , paragraph [] [ text "4. Repeat 1, 2 and 3 for all setups you want to compare." ]
+                        , paragraph []
+                            [ text "5. "
+                            , Input.button [] { onPress = Just CloseInstructionsDialogThenReload, label = text "Rescan setup directory" }
+                            , text " (if you exported the files in default iRacing setup directory), or "
+                            , Input.button [] { onPress = Just CloseInstructionsDialogThenOpenSetupDirectryChooser, label = text "Change setup directory" }
+                            , text " (if you exported the files in other location)."
+                            ]
+                        ]
+                    ]
+                )
+            ]
+
+
+viewAvailableSetups_ : Model -> Element Msg
+viewAvailableSetups_ model =
+    column [ spacing 4 ]
+        (let
+            entry setup =
+                let
+                    carName =
+                        Car.get (Car.Id setup.carId) Master.cars |> Maybe.map .longName |> Maybe.withDefault "???"
+
+                    maybeSetupIndex =
+                        List.Extra.elemIndex setup.id model.selectedSetupIds
+
+                    indexLabelString =
+                        case maybeSetupIndex of
+                            Nothing ->
+                                ""
+
+                            Just i ->
+                                String.fromInt i
+                in
+                row [ spacing 8 ]
+                    [ el [ width (fill |> minimum 20) ] (el [ alignRight ] (text indexLabelString))
+                    , Input.checkbox []
+                        { onChange = AddRemoveSetup setup.id
+                        , icon = Input.defaultCheckbox
+                        , checked = maybeSetupIndex /= Nothing
+                        , label = Input.labelRight [] (text (carName ++ " / " ++ setup.name))
+                        }
+                    ]
+         in
+         Setup.filterByCarTrack model.maybeCar model.maybeTrack model.nameFilterText model.setups
+            |> List.map entry
+        )
 
 
 viewSelectedSetups : Model -> Element Msg

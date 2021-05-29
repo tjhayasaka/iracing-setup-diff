@@ -6,22 +6,33 @@ if (require('electron-squirrel-startup')) return app.quit();
 function createMenu (window)
 {
   const updateMenuItem = function (menuItem) {
-    // remove "Edit" menu item from the application menu.
-    // replace "Help" menu item with custom one.
+    // remove "Edit" from the application menu.
+    // replace "View/Reload" with custom one.
+    // replace "Help" with custom one.
 
     if (menuItem.role == "editmenu")
       return null;
-    if (menuItem.role != "help")
-      return menuItem;
-    const template = [
-      {
-        label: 'Help',
-        click: () => { window.webContents.send("showInstructionsDialog"); }
-      }
-    ]
-    const helpMenu = Menu.buildFromTemplate(template)
-    let newMenuItem = new MenuItem({ id: menuItem.id, role: menuItem.role, label: menuItem.label, submenu: helpMenu });
-    return newMenuItem;
+    if (menuItem.role == "viewmenu") {
+      let submenu = new Menu();
+      menuItem.submenu.items.forEach(i => {
+        if (i.role == "reload") { i.click = () => { window.webContents.send("reload"); } }
+        submenu.append(i);
+      });
+      let newMenuItem = new MenuItem({ id: menuItem.id, role: menuItem.role, label: menuItem.label, submenu: submenu });
+      return newMenuItem;
+    }
+    if (menuItem.role == "help") {
+      const template = [
+        {
+          label: "Help",
+          click: () => { window.webContents.send("showInstructionsDialog"); }
+        }
+      ]
+      const submenu = Menu.buildFromTemplate(template)
+      let newMenuItem = new MenuItem({ id: menuItem.id, role: menuItem.role, label: menuItem.label, submenu: submenu });
+      return newMenuItem;
+    }
+    return menuItem;
   }
 
   const oldMenu = Menu.getApplicationMenu()

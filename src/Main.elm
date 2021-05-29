@@ -50,6 +50,9 @@ nextMsg msg arg =
 port progress : (Int -> msg) -> Sub msg
 
 
+port reload : (() -> msg) -> Sub msg
+
+
 port showInstructionsDialog : (() -> msg) -> Sub msg
 
 
@@ -317,6 +320,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ progress Progress
+        , reload Reload
         , showInstructionsDialog (\() -> ToggleShowInstructionsDialog)
         , doneGetDefaultSetupDirectory DoneGetDefaultSetupDirectory
         , doneGetDefaultSetupDirectoryError DoneGetDefaultSetupDirectoryError

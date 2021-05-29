@@ -180,6 +180,10 @@ contextBridge.exposeInMainWorld('api', {
   }
 })
 
+ipcRenderer.on("reload", (event) => {
+  window.elmApp.ports.reload.send(null);
+});
+
 ipcRenderer.on("showInstructionsDialog", (event) => {
   window.elmApp.ports.showInstructionsDialog.send(null);
 });

@@ -11,9 +11,10 @@
 
   <script type="text/javascript" src="elm.min.js"></script>
   <script>
-   let app = Elm.Main.init({
+    let app = Elm.Main.init({
       node: document.getElementById("container")
     });
+    window.api.setElmApp(app);
     app.ports.openSetupDirectoryChooser.subscribe(function() {
       window.api.openSetupDirectoryChooser(app);
     });

@@ -157,6 +157,9 @@ function cancelReadExportedSetupFiles(app, pid)
 }
 
 contextBridge.exposeInMainWorld('api', {
+  setElmApp(app) {
+    window.elmApp = app;
+  },
   openSetupDirectoryChooser(app) {
     openSetupDirectoryChooser(app);
   },
@@ -176,3 +179,7 @@ contextBridge.exposeInMainWorld('api', {
     cancelReadExportedSetupFiles(app, pid);
   }
 })
+
+ipcRenderer.on("showInstructionsDialog", (event) => {
+  window.elmApp.ports.showInstructionsDialog.send(null);
+});

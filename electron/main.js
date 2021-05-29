@@ -1,19 +1,40 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, Menu, dialog, ipcMain } = require('electron')
+const { app, BrowserWindow, Menu, MenuItem, dialog, ipcMain } = require('electron')
 
 if (require('electron-squirrel-startup')) return app.quit();
+
+function createMenu (window)
+{
+  const updateMenuItem = function (menuItem) {
+    // remove "Edit" menu item from the application menu.
+    // replace "Help" menu item with custom one.
+
+    if (menuItem.role == "editmenu")
+      return null;
+    if (menuItem.role != "help")
+      return menuItem;
+    const template = [
+      {
+        label: 'Help',
+        click: () => { window.webContents.send("showInstructionsDialog"); }
+      }
+    ]
+    const helpMenu = Menu.buildFromTemplate(template)
+    let newMenuItem = new MenuItem({ id: menuItem.id, role: menuItem.role, label: menuItem.label, submenu: helpMenu });
+    return newMenuItem;
+  }
+
+  const oldMenu = Menu.getApplicationMenu()
+  let newMenu = new Menu();
+  oldMenu.items.map(updateMenuItem).forEach(i => { if (i != null) newMenu.append(i); });
+  Menu.setApplicationMenu(newMenu);
+}
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 
 function createWindow () {
-  // remove "Edit" menu item from the application menu.
-  var oldMenu = Menu.getApplicationMenu()
-  var newMenu = new Menu();
-  oldMenu.items.filter(menuitem => menuitem.label != "Edit").forEach(i => newMenu.append(i));
-  Menu.setApplicationMenu(newMenu);
-
   // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 960,
@@ -25,6 +46,8 @@ function createWindow () {
       preload: `${__dirname}/preload.js`
     }
   })
+
+  createMenu(mainWindow);
 
   // and load the index.html of the app.
   mainWindow.loadFile('index.html')
@@ -45,6 +68,7 @@ function createWindow () {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow)
+
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {

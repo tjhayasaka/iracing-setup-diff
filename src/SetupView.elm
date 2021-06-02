@@ -5,6 +5,7 @@ import Dict
 import Dom
 import Dom.DragDrop as DragDrop
 import Element exposing (..)
+import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import Global exposing (..)
@@ -12,6 +13,13 @@ import Html.Attributes
 import Master
 import Setup
 import Track
+
+
+type RelativeColumnPosition
+    = NotDragged
+    | DraggedObject
+    | BeforeDraggedObject
+    | AfterDraggedObject
 
 
 type alias RawRow =
@@ -138,9 +146,70 @@ viewSetupComparisonTable_ dragDropState setups rows =
         { data = tableRows setups
         , columns =
             let
+                relativeColumnPosition : Setup.Id -> RelativeColumnPosition
+                relativeColumnPosition thisId =
+                    case DragDrop.currentlyDraggedObject dragDropState of
+                        Nothing ->
+                            NotDragged
+
+                        Just draggedObjectId ->
+                            if draggedObjectId == thisId then
+                                DraggedObject
+
+                            else
+                                setups
+                                    |> List.foldl
+                                        (\setup result ->
+                                            case result of
+                                                NotDragged ->
+                                                    if setup.id == draggedObjectId then
+                                                        DraggedObject
+
+                                                    else
+                                                        if setup.id == thisId then
+                                                            BeforeDraggedObject
+
+                                                        else
+                                                            result
+
+                                                DraggedObject ->
+                                                    if setup.id == thisId then
+                                                        AfterDraggedObject
+
+                                                    else
+                                                        result
+
+                                                BeforeDraggedObject ->
+                                                    BeforeDraggedObject
+
+                                                AfterDraggedObject ->
+                                                    AfterDraggedObject
+                                        )
+                                        NotDragged
+
+                placeholderAttrib : Setup.Id -> List (Attribute msg)
+                placeholderAttrib thisId =
+                    case ( DragDrop.isCurrentDropTarget dragDropState (OntoElement thisId), relativeColumnPosition thisId ) of
+                        ( _, NotDragged ) ->
+                            []
+
+                        ( _, DraggedObject ) ->
+                            [ alpha 0.3 ]
+
+                        ( False, _ ) ->
+                            []
+
+                        ( True, BeforeDraggedObject ) ->
+                            [ Border.color <| rgb255 63 127 127, Border.solid, Border.widthEach { bottom = 0, left = 8, right = 0, top = 0 }, paddingEach { bottom = 0, left = 20, right = 0, top = 0 } ]
+
+                        ( True, AfterDraggedObject ) ->
+                            [ Border.color <| rgb255 63 127 127, Border.solid, Border.widthEach { bottom = 0, left = 0, right = 8, top = 0 }, paddingEach { bottom = 0, left = 0, right = 20, top = 0 } ]
+
                 setupColumnHeader_ i setup =
-                    layoutWith { options = [noStaticStyleSheet] } [ Font.color <| rgb255 255 255 255, Font.size 14 ]
-                        (column [ spacing 4 ]
+                    layoutWith { options = [ noStaticStyleSheet ] }
+                        [ Font.color <| rgb255 255 255 255, Font.size 14 ]
+                        (column
+                            (placeholderAttrib setup.id ++ [ spacing 4, width fill ])
                             [ text (setup.name |> String.replace " / " "\n/ ")
                             , Input.button [] { onPress = Just (RemoveSetup setup.id), label = text "remove" }
                             ]
@@ -184,7 +253,7 @@ viewSetupComparisonTable_ dragDropState setups rows =
                                                     [ Html.Attributes.style "color" "#aaa" |> htmlAttribute ]
                                     in
                                     column
-                                        (majorityAttrs ++ [ paddingXY 10 0 ])
+                                        (placeholderAttrib setup.id ++ majorityAttrs ++ [ paddingXY 10 0 ])
                                         [ case item.valueElements |> List.drop i |> List.head of
                                             Nothing ->
                                                 text "(bug)"
@@ -194,29 +263,32 @@ viewSetupComparisonTable_ dragDropState setups rows =
                                         ]
 
                                 _ ->
-                                    none
+                                    column (placeholderAttrib setup.id) [ text " " ]
+                    }
+
+                column0 =
+                    { header = none
+                    , width = px 200
+                    , view =
+                        \row ->
+                            case row of
+                                SectionHeader name ->
+                                    text name
+
+                                SetupItem item ->
+                                    let
+                                        isComputedAttrs =
+                                            case item.isComputed of
+                                                False ->
+                                                    []
+
+                                                True ->
+                                                    [ Html.Attributes.style "color" "#aaa" |> htmlAttribute ]
+                                    in
+                                    column isComputedAttrs [ el [ alignRight ] (text item.name) ]
                     }
             in
-            { header = none
-            , width = px 200
-            , view =
-                \row ->
-                    case row of
-                        SectionHeader name ->
-                            text name
-
-                        SetupItem item ->
-                            let
-                                isComputedAttrs =
-                                    case item.isComputed of
-                                        False ->
-                                            []
-
-                                        True ->
-                                            [ Html.Attributes.style "color" "#aaa" |> htmlAttribute ]
-                            in
-                            column isComputedAttrs [ el [ alignRight ] (text item.name) ]
-            }
+            column0
                 :: List.indexedMap setupColumns setups
         }
 

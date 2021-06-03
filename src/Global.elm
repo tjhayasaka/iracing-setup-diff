@@ -3,6 +3,7 @@ module Global exposing (DropTargetIdType(..), ExportedSetupOrInfo(..), Model, Ms
 import Car
 import Dict exposing (Dict)
 import Dom.DragDrop as DragDrop
+import Dropdown
 import Setup
 import Track
 
@@ -10,6 +11,14 @@ import Track
 type DropTargetIdType
     = OntoElement Setup.Id
     | EndOfList
+
+
+type alias CarDropdownItem =
+    String
+
+
+type alias TrackDropdownItem =
+    String
 
 
 type alias Model =
@@ -26,6 +35,8 @@ type alias Model =
     , messages : String
     , messagesSize : Int
     , messagesTruncated : Bool
+    , carDropdownState : Dropdown.State CarDropdownItem
+    , trackDropdownState : Dropdown.State TrackDropdownItem
     , maybeCar : Maybe Car.Car
     , maybeTrack : Maybe Track.Track
     , nameFilterText : String
@@ -49,6 +60,8 @@ initialModel =
     , messages = ""
     , messagesSize = 0
     , messagesTruncated = False
+    , carDropdownState = Dropdown.init "dropdown"
+    , trackDropdownState = Dropdown.init "dropdown"
     , maybeCar = Nothing
     , maybeTrack = Nothing
     , nameFilterText = ""
@@ -79,8 +92,10 @@ type Msg
     | ToggleShowInstructionsDialog
     | CloseInstructionsDialogThenReload
     | CloseInstructionsDialogThenOpenSetupDirectryChooser
-    | CarChanged String
-    | TrackChanged String
+    | CarDropdownMsg (Dropdown.Msg CarDropdownItem)
+    | CarChanged (Maybe CarDropdownItem)
+    | TrackDropdownMsg (Dropdown.Msg TrackDropdownItem)
+    | TrackChanged (Maybe TrackDropdownItem)
     | NameFilterTextChanged String
     | ToggleSetup Setup.Id
     | AddRemoveSetup Setup.Id Bool

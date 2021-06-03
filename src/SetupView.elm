@@ -94,14 +94,14 @@ makeCookedSetup rawSetup =
                     { name = "Meta / Car"
                     , isComputed = False
                     , value = carName
-                    , valueElement = Input.button [] { onPress = Just (CarChanged carId), label = text carName }
+                    , valueElement = Input.button [] { onPress = Just (CarChanged (Just carId)), label = text carName }
                     }
 
                 trackEntry =
                     { name = "Meta / Track"
                     , isComputed = False
                     , value = trackName
-                    , valueElement = Input.button [] { onPress = Just (TrackChanged trackId), label = text trackName }
+                    , valueElement = Input.button [] { onPress = Just (TrackChanged (Just trackId)), label = text trackName }
                     }
             in
             carEntry :: trackEntry :: entries
@@ -165,12 +165,11 @@ viewSetupComparisonTable_ dragDropState setups rows =
                                                     if setup.id == draggedObjectId then
                                                         DraggedObject
 
-                                                    else
-                                                        if setup.id == thisId then
-                                                            BeforeDraggedObject
+                                                    else if setup.id == thisId then
+                                                        BeforeDraggedObject
 
-                                                        else
-                                                            result
+                                                    else
+                                                        result
 
                                                 DraggedObject ->
                                                     if setup.id == thisId then

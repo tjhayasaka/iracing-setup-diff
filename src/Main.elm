@@ -4,6 +4,7 @@ import Browser
 import Car
 import Dict
 import Dom.DragDrop as DragDrop
+import Dropdown
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -251,11 +252,43 @@ update msg model =
         ToggleShowMessages ->
             ( { model | showMessages = not model.showMessages }, Cmd.none )
 
-        CarChanged newIdString ->
-            ( { model | maybeCar = Car.get (Car.IdString newIdString) Master.cars }, Cmd.none )
+        CarDropdownMsg subMsg ->
+            let
+                ( state, cmd ) =
+                    Dropdown.update carDropdownConfig subMsg model model.carDropdownState
+            in
+            ( { model | carDropdownState = state }, cmd )
 
-        TrackChanged newIdString ->
-            ( { model | maybeTrack = Track.get (Track.IdString newIdString) Master.tracks }, Cmd.none )
+        CarChanged maybeNewIdString ->
+            let
+                maybeCar =
+                    case maybeNewIdString of
+                        Nothing ->
+                            Nothing
+
+                        Just newIdString ->
+                            Car.get (Car.IdString newIdString) Master.cars
+            in
+            ( { model | maybeCar = maybeCar }, Cmd.none )
+
+        TrackDropdownMsg subMsg ->
+            let
+                ( state, cmd ) =
+                    Dropdown.update trackDropdownConfig subMsg model model.trackDropdownState
+            in
+            ( { model | trackDropdownState = state }, cmd )
+
+        TrackChanged maybeNewIdString ->
+            let
+                maybeTrack =
+                    case maybeNewIdString of
+                        Nothing ->
+                            Nothing
+
+                        Just newIdString ->
+                            Track.get (Track.IdString newIdString) Master.tracks
+            in
+            ( { model | maybeTrack = maybeTrack }, Cmd.none )
 
         NameFilterTextChanged newNameFilterText ->
             ( { model | nameFilterText = newNameFilterText }, Cmd.none )
@@ -435,51 +468,129 @@ div[role='button'] { font-size: 12px; background: #dddddd; color: #000; border: 
             ]
 
 
+carDropdownConfig =
+    let
+        itemToText item =
+            case Car.get (Car.IdString item) Master.cars of
+                Nothing ->
+                    "all"
+
+                Just car ->
+                    car.longName
+
+        itemToTextWithCount item =
+            itemToText item
+
+        -- NOTE:  we want to add number of setups matched with this item, but it needs to access model, and model is not available here.
+        itemToPrompt item =
+            text (itemToTextWithCount item)
+
+        itemToElement selected highlighted i =
+            let
+                attrs =
+                    if highlighted then
+                        [ Background.color <| rgb255 0 0 128 ]
+
+                    else if selected then
+                        [ Background.color <| rgb255 100 100 100 ]
+
+                    else
+                        [ Background.color <| rgb255 0 0 0 ]
+            in
+            el (attrs ++ [ width fill ]) (text <| itemToTextWithCount i)
+
+        options model =
+            (Nothing :: (Master.cars |> Dict.values |> List.sortBy .longName |> List.map Just)) |> List.map Car.stringifiedId
+    in
+    Dropdown.filterable
+        { itemsFromModel = options
+        , selectionFromModel = \model -> Just (Car.stringifiedId model.maybeCar)
+        , dropdownMsg = CarDropdownMsg
+        , onSelectMsg = CarChanged
+        , itemToPrompt = itemToPrompt
+        , itemToElement = itemToElement
+        , itemToText = itemToText
+        }
+        |> Dropdown.withContainerAttributes [ width (px 300) ]
+        |> Dropdown.withPromptElement (el [] (text "Select option"))
+        |> Dropdown.withFilterPlaceholder "Type for option"
+        |> Dropdown.withSelectAttributes [ Border.width 1, Border.rounded 2, paddingXY 16 8, spacing 10, width fill ]
+        |> Dropdown.withListAttributes
+            [ Border.width 1
+            , Border.roundEach { topLeft = 0, topRight = 0, bottomLeft = 2, bottomRight = 2 }
+            , width fill
+            , spacing 0
+            ]
+        |> Dropdown.withSearchAttributes [ Border.width 0, padding 0 ]
+
+
 viewCarForm model =
     column [ spacing 4 ]
         [ text "Car"
-        , let
-            countMatches maybeCar =
-                model.setups |> Setup.filterByCarTrack maybeCar model.maybeTrack model.nameFilterText |> List.length |> String.fromInt
-
-            entry car =
-                Html.option
-                    [ Html.Attributes.value (car.id |> String.fromInt)
-                    , Html.Attributes.selected ((car.id |> String.fromInt) == Car.stringifiedId model.maybeCar)
-                    ]
-                    [ Html.text (car.longName ++ " (" ++ countMatches (Just car) ++ ")") ]
-
-            nullOption =
-                Html.option [ Html.Attributes.value "" ] [ Html.text ("all (" ++ countMatches Nothing ++ " setups)") ]
-
-            options =
-                Master.cars |> Dict.values |> List.map entry
-          in
-          html (Html.select [ Html.Events.onInput CarChanged ] (nullOption :: options))
+        , Dropdown.view carDropdownConfig model model.carDropdownState
         ]
+
+
+trackDropdownConfig =
+    let
+        itemToText item =
+            case Track.get (Track.IdString item) Master.tracks of
+                Nothing ->
+                    "all"
+
+                Just track ->
+                    track.longName
+
+        itemToTextWithCount item =
+            itemToText item
+
+        -- NOTE:  we want to add number of setups matched with this item, but it needs to access model, and model is not available here.
+        itemToPrompt item =
+            text (itemToTextWithCount item)
+
+        itemToElement selected highlighted i =
+            let
+                attrs =
+                    if highlighted then
+                        [ Background.color <| rgb255 0 0 128 ]
+
+                    else if selected then
+                        [ Background.color <| rgb255 100 100 100 ]
+
+                    else
+                        [ Background.color <| rgb255 0 0 0 ]
+            in
+            el (attrs ++ [ width fill ]) (text <| itemToTextWithCount i)
+
+        options model =
+            (Nothing :: (Master.tracks |> Dict.values |> List.sortBy .longName |> List.map Just)) |> List.map Track.stringifiedId
+    in
+    Dropdown.filterable
+        { itemsFromModel = options
+        , selectionFromModel = \model -> Just (Track.stringifiedId model.maybeTrack)
+        , dropdownMsg = TrackDropdownMsg
+        , onSelectMsg = TrackChanged
+        , itemToPrompt = itemToPrompt
+        , itemToElement = itemToElement
+        , itemToText = itemToText
+        }
+        |> Dropdown.withContainerAttributes [ width (px 300) ]
+        |> Dropdown.withPromptElement (el [] (text "Select option"))
+        |> Dropdown.withFilterPlaceholder "Type for option"
+        |> Dropdown.withSelectAttributes [ Border.width 1, Border.rounded 2, paddingXY 16 8, spacing 10, width fill ]
+        |> Dropdown.withListAttributes
+            [ Border.width 1
+            , Border.roundEach { topLeft = 0, topRight = 0, bottomLeft = 2, bottomRight = 2 }
+            , width fill
+            , spacing 0
+            ]
+        |> Dropdown.withSearchAttributes [ Border.width 0, padding 0 ]
 
 
 viewTrackForm model =
     column [ spacing 4 ]
         [ text "Track"
-        , let
-            countMatches maybeTrack =
-                model.setups |> Setup.filterByCarTrack model.maybeCar maybeTrack model.nameFilterText |> List.length |> String.fromInt
-
-            entry track =
-                Html.option
-                    [ Html.Attributes.value (track.id |> String.fromInt)
-                    , Html.Attributes.selected ((track.id |> String.fromInt) == Track.stringifiedId model.maybeTrack)
-                    ]
-                    [ Html.text (track.longName ++ " (" ++ countMatches (Just track) ++ ")") ]
-
-            nullOption =
-                Html.option [ Html.Attributes.value "" ] [ Html.text ("all (" ++ countMatches Nothing ++ " setups)") ]
-
-            options =
-                Master.tracks |> Dict.values |> List.map entry
-          in
-          html (Html.select [ Html.Events.onInput TrackChanged ] (nullOption :: options))
+        , Dropdown.view trackDropdownConfig model model.trackDropdownState
         ]
 
 

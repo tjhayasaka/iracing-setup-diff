@@ -150,6 +150,15 @@ renameSection sectionKey0 sectionKey1 a =
         Just sectionContent ->
             Ok (a |> Dict.remove sectionKey0 |> Dict.insert sectionKey1 sectionContent)
 
+renameOptionalSection : SectionKey -> SectionKey -> Sections -> Result String Sections
+renameOptionalSection sectionKey0 sectionKey1 a =
+    case Dict.get sectionKey0 a of
+        Nothing ->
+            Ok a
+
+        Just sectionContent ->
+            Ok (a |> Dict.remove sectionKey0 |> Dict.insert sectionKey1 sectionContent)
+
 
 removeEntry : SectionKey -> String -> Sections -> Result String Sections
 removeEntry sectionKey entryName a =
@@ -222,7 +231,17 @@ parseSetupEntries_ entriesHtml =
         |> andThen (renameSection ( 6, "LEFT REAR" ) ( 7, "CHASSIS / LEFT REAR" ))
         |> andThen (renameSection ( 7, "RIGHT FRONT" ) ( 6, "CHASSIS / RIGHT FRONT" ))
         |> andThen (renameSection ( 8, "RIGHT REAR" ) ( 8, "CHASSIS / RIGHT REAR" ))
-        |> andThen (renameSection ( 9, "REAR" ) ( 9, "REAR" ))
+        |> andThen (renameSection ( 9, "REAR" ) ( 9, "CHASSIS / REAR" ))
+        |> andThen (renameOptionalSection ( 10, "LEFT FRONT" ) ( 10, "SHOCKS / LEFT FRONT" ))
+        |> andThen (renameOptionalSection ( 11, "LEFT REAR" ) ( 12, "SHOCKS / LEFT REAR" ))
+        |> andThen (renameOptionalSection ( 12, "RIGHT FRONT" ) ( 11, "SHOCKS / RIGHT FRONT" ))
+        |> andThen (renameOptionalSection ( 13, "RIGHT REAR" ) ( 13, "SHOCKS / RIGHT REAR" ))
+        |> andThen (renameOptionalSection ( 10, "Launch Control" ) ( 10, "DRIVETRAIN / Launch Control" )) -- vwbeetlegrc, fordfiestwrc, subaruwrxsti
+        |> andThen (renameOptionalSection ( 11, "Gearbox" ) ( 11, "DRIVETRAIN / Gearbox" )) -- vwbeetlegrc, fordfiestwrc, subaruwrxsti
+        |> andThen (renameOptionalSection ( 12, "Front Diff" ) ( 12, "DRIVETRAIN / Front Diff" )) -- vwbeetlegrc, fordfiestwrc, subaruwrxsti
+        |> andThen (renameOptionalSection ( 13, "Center Diff" ) ( 13, "DRIVETRAIN / Center Diff" )) -- subaruwrxsti
+        |> andThen (renameOptionalSection ( 13, "Rear Diff" ) ( 13, "DRIVETRAIN / Rear Diff" )) -- vwbeetlegrc, fordfiestwrc
+        |> andThen (renameOptionalSection ( 14, "Rear Diff" ) ( 14, "DRIVETRAIN / Rear Diff" )) -- subaruwrxsti
         |> andThen (removeEntry ( 0, "TIRES / LEFT FRONT" ) "Last hot pressure")
         |> andThen (removeEntry ( 0, "TIRES / LEFT FRONT" ) "Last temps O M I")
         |> andThen (removeEntry ( 0, "TIRES / LEFT FRONT" ) "Tread remaining")
@@ -256,12 +275,16 @@ parseSetupEntries_ entriesHtml =
         |> andThen (markComputed "CHASSIS / FRONT / Left side weight")
         |> andThen (markComputed "CHASSIS / LEFT FRONT / Corner weight")
         |> andThen (markComputed "CHASSIS / LEFT FRONT / Tube height")
+        |> andThen (markComputed "CHASSIS / LEFT FRONT / Ride height")
         |> andThen (markComputed "CHASSIS / RIGHT FRONT / Corner weight")
         |> andThen (markComputed "CHASSIS / RIGHT FRONT / Tube height")
+        |> andThen (markComputed "CHASSIS / RIGHT FRONT / Ride height")
         |> andThen (markComputed "CHASSIS / LEFT REAR / Corner weight")
         |> andThen (markComputed "CHASSIS / LEFT REAR / Tube height")
+        |> andThen (markComputed "CHASSIS / LEFT REAR / Ride height")
         |> andThen (markComputed "CHASSIS / RIGHT REAR / Corner weight")
         |> andThen (markComputed "CHASSIS / RIGHT REAR / Tube height")
+        |> andThen (markComputed "CHASSIS / RIGHT REAR / Ride height")
 
 
 parseSetupEntries : List Html.Parser.Node -> Result String (List Setup.SetupEntry)

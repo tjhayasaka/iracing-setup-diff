@@ -34,11 +34,8 @@ getCarId bodyChildren =
                         cleanup1 =
                             Maybe.withDefault Regex.never <| Regex.fromString " setup: .*$"
 
-                        fix0 =
-                            Maybe.withDefault Regex.never <| Regex.fromString "^dirtsprint "
-
                         shortName =
-                            text |> Regex.replaceAtMost 1 cleanup0 (\_ -> "") |> Regex.replaceAtMost 1 cleanup1 (\_ -> "") |> Regex.replaceAtMost 1 fix0 (\_ -> "dirtsprint/")
+                            text |> Regex.replaceAtMost 1 cleanup0 (\_ -> "") |> Regex.replaceAtMost 1 cleanup1 (\_ -> "")
 
                         maybeCar =
                             Car.get (Car.ShortName shortName) Master.cars
@@ -65,22 +62,24 @@ getTrackId bodyChildren setupName =
                 (Html.Parser.Text _) :: (Html.Parser.Element "br" [] []) :: (Html.Parser.Text _) :: (Html.Parser.Element "br" [] []) :: (Html.Parser.Text text) :: _ ->
                     -- text = " \r\n\t\t\ttrack: bristol dirt"
                     let
-                        baselineRx =
+                        baselineRx0 =
                             Maybe.withDefault Regex.never <| Regex.fromStringWith { caseInsensitive = True, multiline = False } "baseline"
+
+                        baselineRx1 =
+                            Maybe.withDefault Regex.never <| Regex.fromStringWith { caseInsensitive = False, multiline = False } "^(.* / )?_rallycross_$"
+
+                        baselineRx2 =
+                            Maybe.withDefault Regex.never <| Regex.fromStringWith { caseInsensitive = False, multiline = False } "^(.* / )?_roadcourse_$"
 
                         cleanup0 =
                             Maybe.withDefault Regex.never <| Regex.fromString "^ \u{000D}\n\t\t\ttrack: "
 
-                        fix0 =
-                            Maybe.withDefault Regex.never <| Regex.fromString " dirt$"
-
                         shortName =
-                            case Regex.find baselineRx setupName of
-                                [] ->
-                                    text |> Regex.replaceAtMost 1 cleanup0 (\_ -> "") |> Regex.replaceAtMost 1 fix0 (\_ -> "_dirt")
+                            if Regex.contains baselineRx0 setupName || Regex.contains baselineRx1 setupName || Regex.contains baselineRx2 setupName then
+                                "baseline"
 
-                                _ ->
-                                    "baseline"
+                            else
+                                text |> Regex.replaceAtMost 1 cleanup0 (\_ -> "")
 
                         maybeTrack =
                             Track.get (Track.ShortName shortName) Master.tracks

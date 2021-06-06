@@ -222,16 +222,24 @@ flatten a =
 parseSetupEntries_ : List Html.Parser.Node -> Result String (List Setup.SetupEntry)
 parseSetupEntries_ entriesHtml =
     preprocess entriesHtml
-        |> andThen (renameSection ( 0, "LEFT FRONT" ) ( 0, "TIRES / LEFT FRONT" ))
-        |> andThen (renameSection ( 1, "LEFT REAR" ) ( 2, "TIRES / LEFT REAR" ))
-        |> andThen (renameSection ( 2, "RIGHT FRONT" ) ( 1, "TIRES / RIGHT FRONT" ))
-        |> andThen (renameSection ( 3, "RIGHT REAR" ) ( 3, "TIRES / RIGHT REAR" ))
-        |> andThen (renameSection ( 4, "FRONT" ) ( 4, "CHASSIS / FRONT" ))
-        |> andThen (renameSection ( 5, "LEFT FRONT" ) ( 5, "CHASSIS / LEFT FRONT" ))
-        |> andThen (renameSection ( 6, "LEFT REAR" ) ( 7, "CHASSIS / LEFT REAR" ))
-        |> andThen (renameSection ( 7, "RIGHT FRONT" ) ( 6, "CHASSIS / RIGHT FRONT" ))
-        |> andThen (renameSection ( 8, "RIGHT REAR" ) ( 8, "CHASSIS / RIGHT REAR" ))
-        |> andThen (renameSection ( 9, "REAR" ) ( 9, "CHASSIS / REAR" ))
+        |> andThen (renameOptionalSection ( 0, "FRONT" ) ( 0, "SUSPENSION / FRONT" )) -- rt2000
+        |> andThen (renameOptionalSection ( 1, "LEFT FRONT" ) ( 1, "SUSPENSION / LEFT FRONT" )) -- rt2000
+        |> andThen (renameOptionalSection ( 2, "LEFT REAR" ) ( 3, "SUSPENSION / LEFT REAR" )) -- rt2000
+        |> andThen (renameOptionalSection ( 3, "RIGHT FRONT" ) ( 2, "SUSPENSION / RIGHT FRONT" )) -- rt2000
+        |> andThen (renameOptionalSection ( 4, "RIGHT REAR" ) ( 4, "SUSPENSION / RIGHT REAR" )) -- rt2000
+        |> andThen (renameOptionalSection ( 5, "REAR" ) ( 5, "SUSPENSION / REAR" )) -- rt2000
+
+        |> andThen (renameOptionalSection ( 0, "LEFT FRONT" ) ( 0, "TIRES / LEFT FRONT" ))
+        |> andThen (renameOptionalSection ( 1, "LEFT REAR" ) ( 2, "TIRES / LEFT REAR" ))
+        |> andThen (renameOptionalSection ( 2, "RIGHT FRONT" ) ( 1, "TIRES / RIGHT FRONT" ))
+        |> andThen (renameOptionalSection ( 3, "RIGHT REAR" ) ( 3, "TIRES / RIGHT REAR" ))
+        |> andThen (renameOptionalSection ( 4, "FRONT" ) ( 4, "CHASSIS / FRONT" ))
+        |> andThen (renameOptionalSection ( 5, "LEFT FRONT" ) ( 5, "CHASSIS / LEFT FRONT" ))
+        |> andThen (renameOptionalSection ( 6, "LEFT REAR" ) ( 7, "CHASSIS / LEFT REAR" ))
+        |> andThen (renameOptionalSection ( 7, "RIGHT FRONT" ) ( 6, "CHASSIS / RIGHT FRONT" ))
+        |> andThen (renameOptionalSection ( 8, "RIGHT REAR" ) ( 8, "CHASSIS / RIGHT REAR" ))
+        |> andThen (renameOptionalSection ( 9, "REAR" ) ( 9, "CHASSIS / REAR" ))
+
         |> andThen (renameOptionalSection ( 10, "LEFT FRONT" ) ( 10, "SHOCKS / LEFT FRONT" ))
         |> andThen (renameOptionalSection ( 11, "LEFT REAR" ) ( 12, "SHOCKS / LEFT REAR" ))
         |> andThen (renameOptionalSection ( 12, "RIGHT FRONT" ) ( 11, "SHOCKS / RIGHT FRONT" ))
@@ -242,6 +250,18 @@ parseSetupEntries_ entriesHtml =
         |> andThen (renameOptionalSection ( 13, "Center Diff" ) ( 13, "DRIVETRAIN / Center Diff" )) -- subaruwrxsti
         |> andThen (renameOptionalSection ( 13, "Rear Diff" ) ( 13, "DRIVETRAIN / Rear Diff" )) -- vwbeetlegrc, fordfiestwrc
         |> andThen (renameOptionalSection ( 14, "Rear Diff" ) ( 14, "DRIVETRAIN / Rear Diff" )) -- subaruwrxsti
+        |> andThen (removeEntry ( 1, "SUSPENSION / LEFT FRONT" ) "Last hot pressure") -- rt2000
+        |> andThen (removeEntry ( 1, "SUSPENSION / LEFT FRONT" ) "Last temps O M I") -- rt2000
+        |> andThen (removeEntry ( 1, "SUSPENSION / LEFT FRONT" ) "Tread remaining") -- rt2000
+        |> andThen (removeEntry ( 2, "SUSPENSION / RIGHT FRONT" ) "Last hot pressure") -- rt2000
+        |> andThen (removeEntry ( 2, "SUSPENSION / RIGHT FRONT" ) "Last temps I M O") -- rt2000
+        |> andThen (removeEntry ( 2, "SUSPENSION / RIGHT FRONT" ) "Tread remaining") -- rt2000
+        |> andThen (removeEntry ( 3, "SUSPENSION / LEFT REAR" ) "Last hot pressure") -- rt2000
+        |> andThen (removeEntry ( 3, "SUSPENSION / LEFT REAR" ) "Last temps O M I") -- rt2000
+        |> andThen (removeEntry ( 3, "SUSPENSION / LEFT REAR" ) "Tread remaining") -- rt2000
+        |> andThen (removeEntry ( 4, "SUSPENSION / RIGHT REAR" ) "Last hot pressure") -- rt2000
+        |> andThen (removeEntry ( 4, "SUSPENSION / RIGHT REAR" ) "Last temps I M O") -- rt2000
+        |> andThen (removeEntry ( 4, "SUSPENSION / RIGHT REAR" ) "Tread remaining") -- rt2000
         |> andThen (removeEntry ( 0, "TIRES / LEFT FRONT" ) "Last hot pressure")
         |> andThen (removeEntry ( 0, "TIRES / LEFT FRONT" ) "Last temps O M I")
         |> andThen (removeEntry ( 0, "TIRES / LEFT FRONT" ) "Tread remaining")
@@ -270,6 +290,20 @@ parseSetupEntries_ entriesHtml =
         |> andThen (moveEntry ( 1, "TIRES / RIGHT FRONT" ) ( 1.5, "TIRES / FRONT" ) "Stagger")
         |> andThen (moveEntry ( 3, "TIRES / RIGHT REAR" ) ( 3.5, "TIRES / REAR" ) "Stagger")
         |> andThen flatten
+        |> andThen (markComputed "SUSPENSION / LEFT FRONT / Corner weight") -- rt2000
+        |> andThen (markComputed "SUSPENSION / LEFT FRONT / Ride height") -- rt2000
+        |> andThen (markComputed "SUSPENSION / LEFT FRONT / Camber") -- rt2000
+        |> andThen (markComputed "SUSPENSION / LEFT FRONT / Caster") -- rt2000
+        |> andThen (markComputed "SUSPENSION / RIGHT FRONT / Corner weight") -- rt2000
+        |> andThen (markComputed "SUSPENSION / RIGHT FRONT / Ride height") -- rt2000
+        |> andThen (markComputed "SUSPENSION / RIGHT FRONT / Camber") -- rt2000
+        |> andThen (markComputed "SUSPENSION / RIGHT FRONT / Caster") -- rt2000
+        |> andThen (markComputed "SUSPENSION / LEFT REAR / Corner weight") -- rt2000
+        |> andThen (markComputed "SUSPENSION / LEFT REAR / Ride height") -- rt2000
+        |> andThen (markComputed "SUSPENSION / LEFT REAR / Camber") -- rt2000
+        |> andThen (markComputed "SUSPENSION / RIGHT REAR / Corner weight") -- rt2000
+        |> andThen (markComputed "SUSPENSION / RIGHT REAR / Ride height") -- rt2000
+        |> andThen (markComputed "SUSPENSION / RIGHT REAR / Camber") -- rt2000
         |> andThen (markComputed "CHASSIS / FRONT / Nose weight")
         |> andThen (markComputed "CHASSIS / FRONT / Cross weight")
         |> andThen (markComputed "CHASSIS / FRONT / Left side weight")

@@ -14,8 +14,6 @@ toDict items =
     Dict.fromList (List.map toDictEntry items)
 
 
-
-
 cars : Dict Car.Id Car.Car
 cars =
     toDict
@@ -187,6 +185,7 @@ tracks =
         , { id = 350, shortName = "charlotte_2018 roval", longName = "Charlotte Motor Speedway - Roval" }
         , { id = 330, shortName = "charlotte_2018 roval - 2018", longName = "Charlotte Motor Speedway - Roval - 2018" }
         , { id = 340, shortName = "charlotte_2018 roval long - 2018", longName = "Charlotte Motor Speedway - Roval Long - 2018" }
+        , { id = 405, shortName = "chicago street circuit", longName = "Chicago Street Circuit" } -- can't find package of pkgid '365'
         , { id = 123, shortName = "chicagoland speedway", longName = "Chicagoland Speedway" } -- can't find package of pkgid '65'
         , { id = 331, shortName = "chilibowl", longName = "Chili Bowl" }
         , { id = 218, shortName = "circuit gilles villeneuve", longName = "Circuit Gilles Villeneuve" } -- can't find package of pkgid '145'

@@ -23,7 +23,7 @@ cars =
         , { id = 98, shortName = "audir18", longName = "Audi R18" }
         , { id = 73, shortName = "audir8gt3", longName = "Audi R8 LMS" }
         , { id = 112, shortName = "audirs3lms", longName = "Audi RS 3 LMS" }
-        , { id = 132, shortName = "bmwm4gt3", longName = "BMW M4 GT3 - Prototype" }
+        , { id = 132, shortName = "bmwm4gt3", longName = "BMW M4 GT3" }
         , { id = 122, shortName = "bmwm4gt4", longName = "BMW M4 GT4" }
         , { id = 109, shortName = "bmwm8gte", longName = "BMW M8 GTE" }
         , { id = 41, shortName = "cadillacctsvr", longName = "Cadillac CTS-V Racecar" }
@@ -58,6 +58,7 @@ cars =
         , { id = 30, shortName = "fr500s", longName = "Ford Mustang FR500S" }
         , { id = 74, shortName = "formularenault20", longName = "Formula Renault 2.0" }
         , { id = 105, shortName = "formularenault35", longName = "Formula Renault 3.5" }
+        , { id = 142, shortName = "formulavee", longName = "Formula Vee" }
         , { id = 67, shortName = "mx5 mx52016", longName = "Global Mazda MX-5 Cup" }
         , { id = 39, shortName = "hpdarx01c", longName = "HPD ARX-01c" }
         , { id = 120, shortName = "indypropm18", longName = "Indy Pro 2000 PM-18" }
@@ -96,6 +97,7 @@ cars =
         , { id = 10, shortName = "solstice rookie", longName = "Pontiac Solstice - Rookie" }
         , { id = 119, shortName = "porsche718gt4", longName = "Porsche 718 Cayman GT4 Clubsport MR" }
         , { id = 88, shortName = "porsche911cup", longName = "Porsche 911 GT3 Cup (991)" }
+        , { id = 137, shortName = "porsche911rgt3", longName = "Porsche 911 GT3 R" }
         , { id = 102, shortName = "porsche991rsr", longName = "Porsche 911 RSR" }
         , { id = 100, shortName = "porsche919", longName = "Porsche 919" }
         , { id = 13, shortName = "radical sr8", longName = "Radical SR8" }
@@ -114,6 +116,7 @@ cars =
         , { id = 117, shortName = "v8supercars holden2019", longName = "Supercars Holden ZB Commodore" }
         , { id = 121, shortName = "usf2000usf17", longName = "USF 2000" }
         , { id = 91, shortName = "vwbeetlegrc", longName = "VW Beetle" }
+        , { id = 138, shortName = "vwbeetlegrc lite", longName = "VW Beetle - Lite" }
         , { id = 27, shortName = "jettatdi", longName = "VW Jetta TDI Cup" }
         , { id = 33, shortName = "williamsfw31", longName = "Williams-Toyota FW31" }
         , { id = 55, shortName = "bmwz4gt3", longName = "[Legacy] BMW Z4 GT3" }
@@ -167,9 +170,9 @@ tracks =
         , { id = 99, shortName = "barber motorsports park short a", longName = "Barber Motorsports Park - Short A" } -- can't find package of pkgid '33'
         , { id = 100, shortName = "barber motorsports park short b", longName = "Barber Motorsports Park - Short B" } -- can't find package of pkgid '33'
         , { id = 396, shortName = "bark river international raceway", longName = "Bark River International Raceway" } -- can't find package of pkgid '351'
-        , { id = 145, shortName = "brands hatch circuit grand prix", longName = "Brands Hatch Circuit - Grand Prix" } -- can't find package of pkgid '91'
-        , { id = 146, shortName = "brands hatch circuit indy", longName = "Brands Hatch Circuit - Indy" } -- can't find package of pkgid '91'
-        , { id = 290, shortName = "brands hatch circuit rallycross", longName = "Brands Hatch Circuit - Rallycross" } -- can't find package of pkgid '91'
+        , { id = 145, shortName = "brandshatch grand prix", longName = "Brands Hatch Circuit - Grand Prix" }
+        , { id = 146, shortName = "brandshatch indy", longName = "Brands Hatch Circuit - Indy" }
+        , { id = 290, shortName = "brandshatch rallycross", longName = "Brands Hatch Circuit - Rallycross" }
         , { id = 287, shortName = "bristol dirt", longName = "Bristol Motor Speedway - Dirt" }
         , { id = 101, shortName = "bristol dual pit roads", longName = "Bristol Motor Speedway - Dual Pit Roads" }
         , { id = 365, shortName = "bristol single pit roads", longName = "Bristol Motor Speedway - Single Pit Roads" }
@@ -185,7 +188,7 @@ tracks =
         , { id = 350, shortName = "charlotte_2018 roval", longName = "Charlotte Motor Speedway - Roval" }
         , { id = 330, shortName = "charlotte_2018 roval - 2018", longName = "Charlotte Motor Speedway - Roval - 2018" }
         , { id = 340, shortName = "charlotte_2018 roval long - 2018", longName = "Charlotte Motor Speedway - Roval Long - 2018" }
-        , { id = 405, shortName = "chicago street circuit", longName = "Chicago Street Circuit" } -- can't find package of pkgid '365'
+        , { id = 405, shortName = "chicago", longName = "Chicago Street Circuit" }
         , { id = 123, shortName = "chicagoland speedway", longName = "Chicagoland Speedway" } -- can't find package of pkgid '65'
         , { id = 331, shortName = "chilibowl", longName = "Chili Bowl" }
         , { id = 218, shortName = "circuit gilles villeneuve", longName = "Circuit Gilles Villeneuve" } -- can't find package of pkgid '145'
@@ -291,6 +294,7 @@ tracks =
         , { id = 286, shortName = "myrtle beach speedway", longName = "Myrtle Beach Speedway" } -- can't find package of pkgid '240'
         , { id = 380, shortName = "nashville fairgrounds speedway mini", longName = "Nashville Fairgrounds Speedway - Mini" } -- can't find package of pkgid '331'
         , { id = 374, shortName = "nashville fairgrounds speedway oval", longName = "Nashville Fairgrounds Speedway - Oval" } -- can't find package of pkgid '331'
+        , { id = 400, shortName = "nashville superspeedway", longName = "Nashville Superspeedway" } -- can't find package of pkgid '353'
         , { id = 222, shortName = "new hampshire motor speedway legends", longName = "New Hampshire Motor Speedway - Legends" } -- can't find package of pkgid '72'
         , { id = 131, shortName = "new hampshire motor speedway oval", longName = "New Hampshire Motor Speedway - Oval" } -- can't find package of pkgid '72'
         , { id = 129, shortName = "new hampshire motor speedway road course", longName = "New Hampshire Motor Speedway - Road Course" } -- can't find package of pkgid '72'
@@ -335,6 +339,9 @@ tracks =
         , { id = 235, shortName = "phoenix raceway oval", longName = "Phoenix Raceway - Oval" } -- can't find package of pkgid '163'
         , { id = 236, shortName = "phoenix raceway oval w/open dogleg", longName = "Phoenix Raceway - Oval w/open dogleg" } -- can't find package of pkgid '163'
         , { id = 277, shortName = "pocono raceway", longName = "Pocono Raceway" } -- can't find package of pkgid '225'
+        , { id = 403, shortName = "red bull ring grand prix", longName = "Red Bull Ring - Grand Prix" } -- can't find package of pkgid '362'
+        , { id = 404, shortName = "red bull ring national", longName = "Red Bull Ring - National" } -- can't find package of pkgid '362'
+        , { id = 407, shortName = "red bull ring north", longName = "Red Bull Ring - North" } -- can't find package of pkgid '362'
         , { id = 31, shortName = "richmond raceway", longName = "Richmond Raceway" } -- can't find package of pkgid '23'
         , { id = 50, shortName = "road america bend", longName = "Road America - Bend" } -- can't find package of pkgid '11'
         , { id = 18, shortName = "road america full course", longName = "Road America - Full Course" } -- can't find package of pkgid '11'

@@ -73,7 +73,9 @@ def main(filename)
             nil ]
         end
       longName = [URI.decode_www_form_component(o["name"]), URI.decode_www_form_component(o["config"])].filter { |s| !s.empty? }.join(" - ")
-      fixes = { 385 => "charlotte 2018 2019 rallycrosslong" }
+      fixes = { 51 => "atlanta roadcourse",
+                253 => "nurburgring nordschleifetourist",
+                385 => "charlotte 2018 2019 rallycrosslong" }
       shortName = fixes[id] || shortName
       { id: id, shortName: shortName, longName: longName, comment: comment }
     end

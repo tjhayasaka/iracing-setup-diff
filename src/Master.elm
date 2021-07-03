@@ -148,7 +148,7 @@ tracks =
         , { id = 53, shortName = "atlanta oval", longName = "Atlanta Motor Speedway - Oval" }
         , { id = 323, shortName = "atlanta rallycross long", longName = "Atlanta Motor Speedway - Rallycross Long" }
         , { id = 322, shortName = "atlanta rallycross short", longName = "Atlanta Motor Speedway - Rallycross Short" }
-        , { id = 51, shortName = "atlanta road course", longName = "Atlanta Motor Speedway - Road Course" }
+        , { id = 51, shortName = "atlanta roadcourse", longName = "Atlanta Motor Speedway - Road Course" }
         , { id = 226, shortName = "auto club speedway competition", longName = "Auto Club Speedway - Competition" } -- can't find package of pkgid '151'
         , { id = 228, shortName = "auto club speedway interior", longName = "Auto Club Speedway - Interior" } -- can't find package of pkgid '151'
         , { id = 227, shortName = "auto club speedway moto", longName = "Auto Club Speedway - Moto" } -- can't find package of pkgid '151'
@@ -317,7 +317,7 @@ tracks =
         , { id = 261, shortName = "nürburgring grand-prix-strecke müllenbachschleife", longName = "Nürburgring Grand-Prix-Strecke - Müllenbachschleife" } -- can't find package of pkgid '185'
         , { id = 259, shortName = "nürburgring grand-prix-strecke sprintstrecke", longName = "Nürburgring Grand-Prix-Strecke - Sprintstrecke" } -- can't find package of pkgid '185'
         , { id = 249, shortName = "nurburgring_nordschleife industriefahrten", longName = "Nürburgring Nordschleife - Industriefahrten" }
-        , { id = 253, shortName = "nurburgring_nordschleife touristenfahrten", longName = "Nürburgring Nordschleife - Touristenfahrten" }
+        , { id = 253, shortName = "nurburgring nordschleifetourist", longName = "Nürburgring Nordschleife - Touristenfahrten" }
         , { id = 166, shortName = "okayama full course", longName = "Okayama International Circuit - Full Course" }
         , { id = 167, shortName = "okayama short", longName = "Okayama International Circuit - Short" }
         , { id = 202, shortName = "oran grand prix", longName = "Oran Park Raceway - Grand Prix" }

@@ -71,11 +71,17 @@ getTrackId bodyChildren setupName =
                         baselineRx2 =
                             Maybe.withDefault Regex.never <| Regex.fromStringWith { caseInsensitive = False, multiline = False } "^(.* / )?_roadcourse_$"
 
+                        baselineRx3 =
+                            Maybe.withDefault Regex.never <| Regex.fromStringWith { caseInsensitive = False, multiline = False } "^(.* / )?_(low|medium|high|maximum)_downforce_(sprint_|endurance_)?$"
+
+                        baselineRx4 =
+                            Maybe.withDefault Regex.never <| Regex.fromStringWith { caseInsensitive = False, multiline = False } "^(.* / )?_(sprint|endurance)_$"
+
                         cleanup0 =
                             Maybe.withDefault Regex.never <| Regex.fromString "^ \u{000D}\n\t\t\ttrack: "
 
                         shortName =
-                            if Regex.contains baselineRx0 setupName || Regex.contains baselineRx1 setupName || Regex.contains baselineRx2 setupName then
+                            if Regex.contains baselineRx0 setupName || Regex.contains baselineRx1 setupName || Regex.contains baselineRx2 setupName || Regex.contains baselineRx3 setupName || Regex.contains baselineRx4 setupName then
                                 "baseline"
 
                             else

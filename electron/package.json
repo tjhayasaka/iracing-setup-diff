@@ -1,5 +1,7 @@
 {
   "name": "iracing-setup-diff",
+  "author": "Tomoaki Hayasaka",
+  "description": "Yet Another iRacing Setup Diff/Comparison Tool",
   "version": "1.0.0",
   "main": "main.js",
   "scripts": {
@@ -35,11 +37,7 @@
       "makers": [
         {
           "name": "@electron-forge/maker-squirrel",
-          "config": {
-            "name": "iracing_setup_diff",
-            "authors": "a",
-            "description": "d"
-          }
+          "config": {}
         }
       ]
     }

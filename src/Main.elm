@@ -480,7 +480,7 @@ carDropdownConfig =
         itemToText item =
             case Car.get (Car.IdString item) Master.cars of
                 Nothing ->
-                    "all"
+                    "all cars"
 
                 Just car ->
                     car.longName
@@ -532,10 +532,7 @@ carDropdownConfig =
 
 
 viewCarForm model =
-    column [ spacing 4 ]
-        [ text "Car"
-        , Dropdown.view carDropdownConfig model model.carDropdownState
-        ]
+    Dropdown.view carDropdownConfig model model.carDropdownState
 
 
 trackDropdownConfig =
@@ -543,7 +540,7 @@ trackDropdownConfig =
         itemToText item =
             case Track.get (Track.IdString item) Master.tracks of
                 Nothing ->
-                    "all"
+                    "all tracks"
 
                 Just track ->
                     track.longName
@@ -595,10 +592,7 @@ trackDropdownConfig =
 
 
 viewTrackForm model =
-    column [ spacing 4 ]
-        [ text "Track"
-        , Dropdown.view trackDropdownConfig model model.trackDropdownState
-        ]
+    Dropdown.view trackDropdownConfig model model.trackDropdownState
 
 
 viewNameFilterForm model =
@@ -610,22 +604,19 @@ viewNameFilterForm model =
             ]
             { onChange = NameFilterTextChanged
             , text = model.nameFilterText
-            , placeholder = Just <| Input.placeholder [] <| text "words"
-            , label = Input.labelAbove [] <| text "Name Filter"
+            , placeholder = Just <| Input.placeholder [] <| text "filter by text"
+            , label = Input.labelHidden "filter by text"
             }
         ]
 
 
 viewAvailableSetups : Model -> Element Msg
 viewAvailableSetups model =
-    column [ spacing 4, width fill ]
-        [ text "Setups"
-        , if model.setups == Dict.empty then
-            viewInstructions
+    if model.setups == Dict.empty then
+        viewInstructions
 
-          else
-            viewAvailableSetups_ model
-        ]
+    else
+        viewAvailableSetups_ model
 
 
 viewInstructions : Element Msg

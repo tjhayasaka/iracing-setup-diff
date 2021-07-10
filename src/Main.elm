@@ -645,7 +645,7 @@ viewInstructions =
                     (text "No Setup Files Loaded")
                 , paragraph []
                     [ text "This program can read \"exported setup files\" only.  You need to export your setups manually in the garage screen in iRacing sim.  "
-                    , link [ Element.Events.onClick ShowInstructionsDialog, Font.underline ] { url = "", label = text "more info" }
+                    , link [ Element.Events.onClick ShowInstructionsDialog, Font.underline ] { url = "#", label = text "more info" }
                     ]
                 ]
             )

@@ -23,7 +23,8 @@ type RelativeColumnPosition
 
 
 type alias RawRow =
-    { name : String
+    { sectionName : String
+    , name : String
     , valueElements : List (Element Msg) -- used to render
     , maybeValues : List (Maybe String) -- used to determine majority or not
     , majorityPs : List Bool
@@ -37,7 +38,7 @@ type Row
 
 
 type alias CookedSetupEntry =
-    { name : String, isComputed : Bool, value : String, valueElement : Element Msg }
+    { sectionName : String, name : String, isComputed : Bool, value : String, valueElement : Element Msg }
 
 
 type alias CookedSetup =
@@ -53,7 +54,8 @@ makeCookedSetup : Setup.Setup -> CookedSetup
 makeCookedSetup rawSetup =
     let
         makeValueElement rawElement =
-            { name = rawElement.name
+            { sectionName = Setup.entryDirName rawSetup.name
+            , name = rawElement.name
             , isComputed = rawElement.isComputed
             , value = rawElement.value
             , valueElement = text rawElement.value
@@ -91,14 +93,16 @@ makeCookedSetup rawSetup =
                             track.shortName
 
                 carEntry =
-                    { name = "Meta / Car"
+                    { sectionName = "Meta"
+                    , name = "Meta / Car"
                     , isComputed = False
                     , value = carName
                     , valueElement = Input.button [] { onPress = Just (CarChanged (Just carId)), label = text carName }
                     }
 
                 trackEntry =
-                    { name = "Meta / Track"
+                    { sectionName = "Meta"
+                    , name = "Meta / Track"
                     , isComputed = False
                     , value = trackName
                     , valueElement = Input.button [] { onPress = Just (TrackChanged (Just trackId)), label = text trackName }
@@ -272,10 +276,46 @@ viewSetupComparisonTable_ dragDropState setups rows =
                         \row ->
                             case row of
                                 SectionHeader name ->
-                                    text name
+                                    let
+                                        isFront =
+                                            (name == "TIRES / LEFT FRONT") || (name == "TIRES / RIGHT FRONT") || (name == "CHASSIS / LEFT FRONT") || (name == "CHASSIS / RIGHT FRONT")
+
+                                        isRear =
+                                            (name == "TIRES / LEFT REAR") || (name == "TIRES / RIGHT REAR") || (name == "CHASSIS / LEFT REAR") || (name == "CHASSIS / RIGHT REAR")
+
+                                        frontRearAttrs =
+                                            if isFront then
+                                                [ Html.Attributes.style "background-color" "#046" |> htmlAttribute ]
+
+                                            else if isRear then
+                                                [ Html.Attributes.style "background-color" "#640" |> htmlAttribute ]
+
+                                            else
+                                                []
+
+                                        attrs =
+                                            frontRearAttrs
+                                    in
+                                    column attrs [ text name ]
 
                                 SetupItem item ->
                                     let
+                                        isFront =
+                                            (item.sectionName == "TIRES / LEFT FRONT") || (item.sectionName == "TIRES / RIGHT FRONT") || (item.sectionName == "CHASSIS / LEFT FRONT") || (item.sectionName == "CHASSIS / RIGHT FRONT")
+
+                                        isRear =
+                                            (item.sectionName == "TIRES / LEFT REAR") || (item.sectionName == "TIRES / RIGHT REAR") || (item.sectionName == "CHASSIS / LEFT REAR") || (item.sectionName == "CHASSIS / RIGHT REAR")
+
+                                        frontRearAttrs =
+                                            if isFront then
+                                                [ Html.Attributes.style "background-color" "#046" |> htmlAttribute ]
+
+                                            else if isRear then
+                                                [ Html.Attributes.style "background-color" "#640" |> htmlAttribute ]
+
+                                            else
+                                                []
+
                                         isComputedAttrs =
                                             case item.isComputed of
                                                 False ->
@@ -283,8 +323,11 @@ viewSetupComparisonTable_ dragDropState setups rows =
 
                                                 True ->
                                                     [ Html.Attributes.style "color" "#aaa" |> htmlAttribute ]
+
+                                        attrs =
+                                            frontRearAttrs ++ isComputedAttrs
                                     in
-                                    column isComputedAttrs [ el [ alignRight ] (text item.name) ]
+                                    column attrs [ el [ alignRight ] (text item.name) ]
                     }
             in
             column0
@@ -375,7 +418,8 @@ tableRows_ setups =
                 valueElements =
                     entries |> List.map (Maybe.map .valueElement) |> List.map (Maybe.withDefault none)
             in
-            { name = entryName
+            { sectionName = Setup.entryDirName entryName
+            , name = entryName
             , isComputed = isComputed
             , valueElements = valueElements
             , maybeValues = entryValues

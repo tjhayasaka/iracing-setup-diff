@@ -421,7 +421,7 @@ view : Model -> Html.Html Msg
 view model =
     Element.layout
         [ Font.size 13
-        , Background.color (rgb255 0 0 0)
+        -- NOTE:  background color is defined in index.html
         , Font.color <| rgb255 255 255 255
         , inFront (instructionsDialog model)
         ]
@@ -429,8 +429,6 @@ view model =
         column
             [ height fill
             , width fill
-            , Background.color (rgb255 0 0 0)
-            , Font.color <| rgb255 255 255 255
             , Font.size 13
             , padding 8
             ]

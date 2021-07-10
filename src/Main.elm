@@ -718,37 +718,39 @@ instructionsDialog model =
 
 viewAvailableSetups_ : Model -> Element Msg
 viewAvailableSetups_ model =
-    column [ spacing 4 ]
-        (let
-            entry setup =
-                let
-                    carName =
-                        Car.get (Car.Id setup.carId) Master.cars |> Maybe.map .longName |> Maybe.withDefault "???"
+    row [ scrollbars, width fill, height (px 200) ]
+        [ column [ spacing 4 ]
+            (let
+                entry setup =
+                    let
+                        carName =
+                            Car.get (Car.Id setup.carId) Master.cars |> Maybe.map .longName |> Maybe.withDefault "???"
 
-                    maybeSetupIndex =
-                        List.Extra.elemIndex setup.id model.selectedSetupIds
+                        maybeSetupIndex =
+                            List.Extra.elemIndex setup.id model.selectedSetupIds
 
-                    indexLabelString =
-                        case maybeSetupIndex of
-                            Nothing ->
-                                ""
+                        indexLabelString =
+                            case maybeSetupIndex of
+                                Nothing ->
+                                    ""
 
-                            Just i ->
-                                String.fromInt i
-                in
-                row [ spacing 8 ]
-                    [ el [ width (fill |> minimum 20) ] (el [ alignRight ] (text indexLabelString))
-                    , Input.checkbox []
-                        { onChange = AddRemoveSetup setup.id
-                        , icon = Input.defaultCheckbox
-                        , checked = maybeSetupIndex /= Nothing
-                        , label = Input.labelRight [] (text (carName ++ " / " ++ setup.name))
-                        }
-                    ]
-         in
-         Setup.filterByCarTrack model.maybeCar model.maybeTrack model.nameFilterText model.setups
-            |> List.map entry
-        )
+                                Just i ->
+                                    String.fromInt i
+                    in
+                    row [ spacing 8 ]
+                        [ el [ width (fill |> minimum 20) ] (el [ alignRight ] (text indexLabelString))
+                        , Input.checkbox []
+                            { onChange = AddRemoveSetup setup.id
+                            , icon = Input.defaultCheckbox
+                            , checked = maybeSetupIndex /= Nothing
+                            , label = Input.labelRight [] (text (carName ++ " / " ++ setup.name))
+                            }
+                        ]
+             in
+             Setup.filterByCarTrack model.maybeCar model.maybeTrack model.nameFilterText model.setups
+                |> List.map entry
+            )
+        ]
 
 
 viewSelectedSetups : Model -> Element Msg

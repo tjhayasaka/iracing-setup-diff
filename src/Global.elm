@@ -72,7 +72,8 @@ initialModel =
 
 
 type Msg
-    = Reload ()
+    = NoMessage
+    | Reload ()
     | Progress Int
     | OpenSetupDirectryChooser ()
     | DoneGetDefaultSetupDirectory String
@@ -89,7 +90,8 @@ type Msg
     | DoneCancelReadExportedSetupFiles Int
     | CleanUpSelection ()
     | ToggleShowMessages
-    | ToggleShowInstructionsDialog
+    | HideInstructionsDialog
+    | ShowInstructionsDialog
     | CloseInstructionsDialogThenReload
     | CloseInstructionsDialogThenOpenSetupDirectryChooser
     | CarDropdownMsg (Dropdown.Msg CarDropdownItem)

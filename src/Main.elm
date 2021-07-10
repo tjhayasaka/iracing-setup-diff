@@ -18,6 +18,7 @@ import Html.Attributes
 import Html.Events
 import Html.Parser
 import Html.Parser.Util
+import Json.Decode
 import List.Extra
 import Master
 import Setup
@@ -145,6 +146,9 @@ toggleSetup setupId model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        NoMessage ->
+            ( model, Cmd.none )
+
         Reload () ->
             ( { model | statusText = "reloading...", messages = "", messagesSize = 0, messagesTruncated = False }, getDefaultSetupDirectory () )
 
@@ -240,8 +244,11 @@ update msg model =
             in
             ( { model | selectedSetupIds = cleaned }, Cmd.none )
 
-        ToggleShowInstructionsDialog ->
-            ( { model | showInstructionsDialog = not model.showInstructionsDialog }, Cmd.none )
+        HideInstructionsDialog ->
+            ( { model | showInstructionsDialog = False }, Cmd.none )
+
+        ShowInstructionsDialog ->
+            ( { model | showInstructionsDialog = True }, Cmd.none )
 
         CloseInstructionsDialogThenReload ->
             ( { model | showInstructionsDialog = False }, nextMsg Reload () )
@@ -354,7 +361,7 @@ subscriptions model =
     Sub.batch
         [ progress Progress
         , reload Reload
-        , showInstructionsDialog (\() -> ToggleShowInstructionsDialog)
+        , showInstructionsDialog (\() -> ShowInstructionsDialog)
         , doneGetDefaultSetupDirectory DoneGetDefaultSetupDirectory
         , doneGetDefaultSetupDirectoryError DoneGetDefaultSetupDirectoryError
         , doneSetStoredSetupDirectory DoneSetStoredSetupDirectory
@@ -638,11 +645,25 @@ viewInstructions =
                     (text "No Setup Files Loaded")
                 , paragraph []
                     [ text "This program can read \"exported setup files\" only.  You need to export your setups manually in the garage screen in iRacing sim.  "
-                    , link [ Element.Events.onClick ToggleShowInstructionsDialog, Font.underline ] { url = "", label = text "more info" }
+                    , link [ Element.Events.onClick ShowInstructionsDialog, Font.underline ] { url = "", label = text "more info" }
                     ]
                 ]
             )
         ]
+
+
+dontPropagateClick_ : Html.Attribute Msg
+dontPropagateClick_ =
+    let
+        msg =
+            NoMessage
+    in
+    Html.Events.stopPropagationOn "click" (Json.Decode.map (\_ -> ( msg, True )) (Json.Decode.succeed msg))
+
+
+dontPropagateClick : Attribute Msg
+dontPropagateClick =
+    htmlAttribute dontPropagateClick_
 
 
 instructionsDialog : Model -> Element Msg
@@ -651,7 +672,7 @@ instructionsDialog model =
         column [] []
 
     else
-        column [ spacing 4, width fill, height fill, Background.color (rgba255 48 48 48 0.9), Element.Events.onClick ToggleShowInstructionsDialog ]
+        column [ spacing 4, width fill, height fill, Background.color (rgba255 48 48 48 0.9), Element.Events.onClick HideInstructionsDialog ]
             [ el
                 [ width (fill |> minimum 600 |> maximum 600)
                 , centerX
@@ -660,7 +681,7 @@ instructionsDialog model =
                 , Border.color <| rgb255 127 127 127
                 , Border.width 1
                 , Border.solid
-                , Element.Events.onClick ToggleShowInstructionsDialog -- this effectively cancels onClick on parent
+                , dontPropagateClick
                 ]
                 (Element.textColumn [ padding 14, spacing 16 ]
                     [ paragraph [] [ text "This program can read \"exported setup files\" only.  You need to export your setups manually in the garage screen in iRacing sim:" ]

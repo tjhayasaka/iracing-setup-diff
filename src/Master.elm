@@ -169,7 +169,7 @@ tracks =
         , { id = 46, shortName = "barber motorsports park full course", longName = "Barber Motorsports Park - Full Course" } -- can't find package of pkgid '33'
         , { id = 99, shortName = "barber motorsports park short a", longName = "Barber Motorsports Park - Short A" } -- can't find package of pkgid '33'
         , { id = 100, shortName = "barber motorsports park short b", longName = "Barber Motorsports Park - Short B" } -- can't find package of pkgid '33'
-        , { id = 396, shortName = "bark river international raceway", longName = "Bark River International Raceway" } -- can't find package of pkgid '351'
+        , { id = 396, shortName = "barkriver", longName = "Bark River International Raceway" }
         , { id = 145, shortName = "brandshatch grand prix", longName = "Brands Hatch Circuit - Grand Prix" }
         , { id = 146, shortName = "brandshatch indy", longName = "Brands Hatch Circuit - Indy" }
         , { id = 290, shortName = "brandshatch rallycross", longName = "Brands Hatch Circuit - Rallycross" }
@@ -199,12 +199,12 @@ tracks =
         , { id = 151, shortName = "circuit park zandvoort oostelijk", longName = "Circuit Park Zandvoort - Oostelijk" } -- can't find package of pkgid '92'
         , { id = 200, shortName = "circuit zolder alternate", longName = "Circuit Zolder - Alternate" } -- can't find package of pkgid '124'
         , { id = 199, shortName = "circuit zolder grand prix", longName = "Circuit Zolder - Grand Prix" } -- can't find package of pkgid '124'
-        , { id = 347, shortName = "circuit de barcelona catalunya club", longName = "Circuit de Barcelona Catalunya - Club" } -- can't find package of pkgid '292'
-        , { id = 345, shortName = "circuit de barcelona catalunya grand prix", longName = "Circuit de Barcelona Catalunya - Grand Prix" } -- can't find package of pkgid '292'
-        , { id = 349, shortName = "circuit de barcelona catalunya historic", longName = "Circuit de Barcelona Catalunya - Historic" } -- can't find package of pkgid '292'
-        , { id = 348, shortName = "circuit de barcelona catalunya moto", longName = "Circuit de Barcelona Catalunya - Moto" } -- can't find package of pkgid '292'
-        , { id = 346, shortName = "circuit de barcelona catalunya national", longName = "Circuit de Barcelona Catalunya - National" } -- can't find package of pkgid '292'
-        , { id = 386, shortName = "circuit de barcelona-catalunya rallycross", longName = "Circuit de Barcelona-Catalunya - Rallycross" } -- can't find package of pkgid '292'
+        , { id = 347, shortName = "barcelona club", longName = "Circuit de Barcelona Catalunya - Club" }
+        , { id = 345, shortName = "barcelona grand prix", longName = "Circuit de Barcelona Catalunya - Grand Prix" }
+        , { id = 349, shortName = "barcelona historic", longName = "Circuit de Barcelona Catalunya - Historic" }
+        , { id = 348, shortName = "barcelona moto", longName = "Circuit de Barcelona Catalunya - Moto" }
+        , { id = 346, shortName = "barcelona national", longName = "Circuit de Barcelona Catalunya - National" }
+        , { id = 386, shortName = "barcelona rallycross", longName = "Circuit de Barcelona-Catalunya - Rallycross" }
         , { id = 164, shortName = "circuit de spa-francorchamps classic pits", longName = "Circuit de Spa-Francorchamps - Classic Pits" } -- can't find package of pkgid '103'
         , { id = 165, shortName = "circuit de spa-francorchamps endurance", longName = "Circuit de Spa-Francorchamps - Endurance" } -- can't find package of pkgid '103'
         , { id = 163, shortName = "circuit de spa-francorchamps grand prix pits", longName = "Circuit de Spa-Francorchamps - Grand Prix Pits" } -- can't find package of pkgid '103'
@@ -361,12 +361,12 @@ tracks =
         , { id = 299, shortName = "snetterton circuit 100", longName = "Snetterton Circuit - 100" } -- can't find package of pkgid '247'
         , { id = 298, shortName = "snetterton circuit 200", longName = "Snetterton Circuit - 200" } -- can't find package of pkgid '247'
         , { id = 297, shortName = "snetterton circuit 300", longName = "Snetterton Circuit - 300" } -- can't find package of pkgid '247'
-        , { id = 98, shortName = "sonoma raceway cup", longName = "Sonoma Raceway - Cup" } -- can't find package of pkgid '35'
-        , { id = 48, shortName = "sonoma raceway cup historic", longName = "Sonoma Raceway - Cup Historic" } -- can't find package of pkgid '35'
-        , { id = 102, shortName = "sonoma raceway indycar 2008-2011", longName = "Sonoma Raceway - IndyCar 2008-2011" } -- can't find package of pkgid '35'
-        , { id = 397, shortName = "sonoma raceway indycar 2012-2018", longName = "Sonoma Raceway - IndyCar 2012-2018" } -- can't find package of pkgid '35'
-        , { id = 49, shortName = "sonoma raceway indycar pre-2008", longName = "Sonoma Raceway - IndyCar pre-2008" } -- can't find package of pkgid '35'
-        , { id = 312, shortName = "sonoma raceway rallycross", longName = "Sonoma Raceway - Rallycross" } -- can't find package of pkgid '35'
+        , { id = 98, shortName = "sonoma cup", longName = "Sonoma Raceway - Cup" }
+        , { id = 48, shortName = "sonoma cup historic", longName = "Sonoma Raceway - Cup Historic" }
+        , { id = 102, shortName = "sonoma indycar 2008-2011", longName = "Sonoma Raceway - IndyCar 2008-2011" }
+        , { id = 397, shortName = "sonoma indycar 2012-2018", longName = "Sonoma Raceway - IndyCar 2012-2018" }
+        , { id = 49, shortName = "sonoma indycar pre-2008", longName = "Sonoma Raceway - IndyCar pre-2008" }
+        , { id = 312, shortName = "sonoma rallycross", longName = "Sonoma Raceway - Rallycross" }
         , { id = 14, shortName = "southboston", longName = "South Boston Speedway" }
         , { id = 256, shortName = "southernnational", longName = "Southern National Motorsports Park" }
         , { id = 11, shortName = "stafford motor speedway full course", longName = "Stafford Motor Speedway - Full Course" } -- can't find package of pkgid '12'

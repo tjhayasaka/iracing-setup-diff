@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-# ./generate-master.rb ~/tmp/win98/00-tjh/iracing-cars-20210530/Cars.html-owned.html
+# ./generate-master.rb ~/new/i/iracing/master/Cars.html-20210710
 
 require "json"
 require "uri"

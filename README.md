@@ -7,6 +7,11 @@ This is a desktop application on Windows that shows a comparison table of export
 
 Tested for dirt (oval and road) cars and tracks only.
 
+Download
+--------
+
+   Go to [Releases page on github](https://github.com/tjhayasaka/iracing-setup-diff/releases) and download the latest "iracing-setup-diff-*.Setup.exe".
+
 Usage
 -----
 

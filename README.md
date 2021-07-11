@@ -32,8 +32,8 @@ Usage
     * If you have exported files in other locations, specify it by pressing "change" button.
       ![](/doc/change-setup-directory.png)
 
-How Cars/Tracks are Determined
-------------------------------
+Don't Expect It Works for Non-Dirt Tracks
+-----------------------------------------
 
 An exported setup file describes the targeted car and track using specially abbreviated names.
 To display long name of cars and tracks (e.g. "USA International Speedway - Dirt" instead of "lakeland dirt"),

@@ -51,16 +51,16 @@ The known cars/tracks list is defined in src/Master.elm.  But the list is incomp
 Special "Baseline" File Names
 -----------------------------
 
-If the filename of a setup matches any of following criteria, the setup is considered as a track agnostic "baseline":
+If the filename of a setup matches any of following criteria, the setup is considered as a track agnostic "&lt;baseline>":
 
-  - The filename contains `baseline`.
+  - The filename contains `baseline` (case insensitive).
 
   - The filename is one of
 
-    * `_rallycross_`
-    * `_roadcourse_`
-    * `_(low|medium|high|maximum)_downforce_(sprint_|endurance_)?`
-    * `_(sprint|endurance)_`.
+    * `_rallycross_` (case sensitive)
+    * `_roadcourse_` (case sensitive)
+    * `_(low|medium|high|maximum)_downforce_(sprint_|endurance_)?` (case sensitive)
+    * `_(sprint|endurance)_` (case sensitive)
 
 These rules are hard coded.  See src/SetupParser.elm for more details.
 
